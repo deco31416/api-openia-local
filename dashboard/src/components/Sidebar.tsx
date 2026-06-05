@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Heart, BarChart3, MessagesSquare,
   ListOrdered, Cpu, Send, AlertTriangle,
@@ -8,21 +8,15 @@ import {
 } from "lucide-react";
 import { theme, cn } from "@/lib/theme";
 
-export interface SidebarSection {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const SECTIONS: SidebarSection[] = [
-  { id: "health", label: "Health", icon: <Heart className="w-5 h-5" /> },
-  { id: "usage", label: "Uso Global", icon: <BarChart3 className="w-5 h-5" /> },
-  { id: "queue", label: "Cola", icon: <ListOrdered className="w-5 h-5" /> },
-  { id: "model", label: "Modelo", icon: <Cpu className="w-5 h-5" /> },
-  { id: "chat", label: "Chat", icon: <Send className="w-5 h-5" /> },
-  { id: "conversations", label: "Conversaciones", icon: <MessagesSquare className="w-5 h-5" /> },
-  { id: "errors", label: "Errores", icon: <AlertTriangle className="w-5 h-5" /> },
-];
+const SECTIONS = [
+  { id: "health", label: "Health", icon: Heart },
+  { id: "usage", label: "Uso Global", icon: BarChart3 },
+  { id: "queue", label: "Cola", icon: ListOrdered },
+  { id: "model", label: "Modelo", icon: Cpu },
+  { id: "chat", label: "Chat", icon: Send },
+  { id: "conversations", label: "Conversaciones", icon: MessagesSquare },
+  { id: "errors", label: "Errores", icon: AlertTriangle },
+] as const;
 
 interface SidebarProps {
   active: string;
@@ -35,95 +29,131 @@ interface SidebarProps {
 }
 
 export function Sidebar({ active, onSelect, collapsed, onToggle, mobileOpen, onMobileClose, isMobile }: SidebarProps) {
-  const sidebarContent = (
-    <aside
-      className={cn(
-        theme.colors.card, theme.colors.border,
-        "flex flex-col h-full transition-all duration-300",
-        // Desktop
-        !isMobile && "border-r",
-        !isMobile && (collapsed ? "w-16" : "w-60"),
-        // Mobile: overlay fijo a la izquierda
-        isMobile && "fixed inset-y-0 left-0 z-50 w-64 border-r shadow-2xl",
-        isMobile && (!mobileOpen && "-translate-x-full"),
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center gap-2 p-4 border-b border-[#30363d]">
-        <button
-          onClick={() => { onSelect("health"); onMobileClose(); }}
-          className="flex items-center gap-2 flex-1 min-w-0 hover:opacity-80"
-        >
-          <Brain className="w-5 h-5 text-[#58a6ff] shrink-0" />
-          {(!collapsed || isMobile) && (
-            <span className="text-sm font-semibold text-[#58a6ff] truncate">Bridge</span>
-          )}
-        </button>
-        {isMobile ? (
-          <button onClick={onMobileClose} className="p-1 rounded hover:bg-[#30363d] text-[#8b949e]">
-            <X className="w-4 h-4" />
-          </button>
-        ) : (
-          <button
-            onClick={onToggle}
-            className="p-1 rounded hover:bg-[#30363d] text-[#8b949e] hover:text-[#c9d1d9] transition-colors shrink-0"
-          >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
-        )}
-      </div>
+  // Cerrar sidebar mobile al seleccionar
+  const handleSelect = (id: string) => {
+    onSelect(id);
+    if (isMobile) onMobileClose();
+  };
 
-      {/* Navegación */}
-      <nav className="flex-1 py-2 overflow-y-auto">
-        {SECTIONS.map((s) => (
+  const sidebarNav = (
+    <nav className="flex-1 py-3 space-y-0.5">
+      {SECTIONS.map(({ id, label, icon: Icon }) => {
+        const isActive = active === id;
+        return (
           <button
-            key={s.id}
-            onClick={() => { onSelect(s.id); onMobileClose(); }}
+            key={id}
+            onClick={() => handleSelect(id)}
+            title={collapsed && !isMobile ? label : undefined}
             className={cn(
-              "w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all",
-              active === s.id
-                ? "bg-[#58a6ff]/10 text-[#58a6ff] border-r-2 border-[#58a6ff]"
-                : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#30363d]/20",
+              // Base
+              "w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-all duration-200 rounded-lg mx-2",
+              // Active
+              isActive
+                ? "bg-[#58a6ff]/15 text-[#58a6ff] font-medium"
+                : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#30363d]/30",
+              // Collapsed desktop: centrado
+              collapsed && !isMobile && "justify-center px-0 mx-1.5 rounded-xl w-auto",
             )}
           >
-            <span className="shrink-0">{s.icon}</span>
-            {(!collapsed || isMobile) && <span className="truncate">{s.label}</span>}
+            <Icon className={cn(
+              "w-5 h-5 shrink-0",
+              isActive ? "text-[#58a6ff]" : ""
+            )} />
+            {(!collapsed || isMobile) && (
+              <span className="truncate">{label}</span>
+            )}
+            {/* Indicador activo: barrita izquierda */}
+            {isActive && (!collapsed || isMobile) && (
+              <span className="ml-auto w-1 h-4 rounded-full bg-[#58a6ff]" />
+            )}
           </button>
-        ))}
-      </nav>
-
-      {/* Footer */}
-      {(!collapsed || isMobile) && (
-        <div className="p-3 border-t border-[#30363d]">
-          <p className="text-[10px] text-[#484f58] text-center truncate">deco31416.com</p>
-        </div>
-      )}
-    </aside>
+        );
+      })}
+    </nav>
   );
 
   return (
     <>
-      {/* Mobile: hamburger + overlay */}
-      {isMobile && (
-        <>
-          <button
-            onClick={() => onMobileClose()}
-            className={cn(
-              "fixed inset-0 bg-black/50 z-40 transition-opacity",
-              mobileOpen ? "opacity-100" : "opacity-0 pointer-events-none",
-            )}
-          />
-          <button
-            onClick={() => onMobileClose()}
-            className="fixed top-3 left-3 z-30 p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#8b949e]"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </>
+      {/* Overlay mobile */}
+      {isMobile && mobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-opacity"
+          onClick={onMobileClose}
+        />
       )}
 
-      {sidebarContent}
+      {/* Sidebar */}
+      <aside
+        className={cn(
+          theme.colors.card,
+          "flex flex-col h-full transition-all duration-300 ease-in-out",
+          // Desktop
+          !isMobile && "border-r border-[#30363d]",
+          !isMobile && (collapsed ? "w-[68px]" : "w-[244px]"),
+          // Mobile overlay
+          isMobile && "fixed inset-y-0 left-0 z-50 w-72 border-r border-[#30363d] shadow-2xl",
+          isMobile && (!mobileOpen && "-translate-x-full"),
+        )}
+      >
+        {/* Header */}
+        <div className={cn(
+          "flex items-center border-b border-[#30363d]",
+          collapsed && !isMobile ? "justify-center px-2 py-4" : "px-4 py-3.5"
+        )}>
+          {(!collapsed || isMobile) && (
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="w-7 h-7 rounded-lg bg-[#58a6ff]/20 flex items-center justify-center shrink-0">
+                <Brain className="w-4 h-4 text-[#58a6ff]" />
+              </div>
+              <span className="text-sm font-semibold text-[#c9d1d9] truncate">
+                ChatGPT Bridge
+              </span>
+            </div>
+          )}
+          {isMobile ? (
+            <button onClick={onMobileClose} className="p-1.5 rounded-lg hover:bg-[#30363d] text-[#8b949e]">
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <button
+              onClick={onToggle}
+              className="p-1.5 rounded-lg hover:bg-[#30363d] text-[#8b949e] hover:text-[#c9d1d9] transition-all shrink-0"
+            >
+              {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            </button>
+          )}
+        </div>
+
+        {sidebarNav}
+
+        {/* Footer minimal */}
+        <div className={cn(
+          "border-t border-[#30363d]",
+          collapsed && !isMobile ? "p-2" : "p-3"
+        )}>
+          {(!collapsed || isMobile) ? (
+            <p className="text-[10px] text-[#484f58] text-center truncate">
+              deco31416.com
+            </p>
+          ) : (
+            <div className="w-5 h-5 mx-auto rounded-full bg-[#58a6ff]/10 flex items-center justify-center">
+              <Brain className="w-3 h-3 text-[#58a6ff]" />
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* Botón hamburguesa mobile */}
+      {isMobile && !mobileOpen && (
+        <button
+          onClick={() => onMobileClose()}
+          className="fixed top-3 left-3 z-30 p-2 rounded-lg bg-[#161b22] border border-[#30363d] text-[#8b949e] shadow-lg"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+      )}
     </>
   );
 }
+
 

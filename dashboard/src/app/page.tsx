@@ -24,10 +24,14 @@ export default function DashboardPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Auto-collapse sidebar on mobile
-  useEffect(() => {
-    if (isMobile) setSidebarCollapsed(true);
-  }, [isMobile]);
+  // Sidebar toggle: desktop = collapse, mobile = overlay
+  const handleSidebarToggle = () => {
+    if (isMobile) {
+      setMobileOpen(!mobileOpen);
+    } else {
+      setSidebarCollapsed(!sidebarCollapsed);
+    }
+  };
 
   useEffect(() => {
     fetch(`${API_BASE}/health`).then((r) => r.json()).then(setHealth).catch(() => {});
