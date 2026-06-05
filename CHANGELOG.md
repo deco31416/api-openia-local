@@ -64,7 +64,23 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 - Tests arreglados para `session_store` ordenamiento y `antiban` timing.
 
 ---
+## [3.3.0] — 2026-06-04
 
+### Added — API Key + Multi-host
+
+- **Middleware `X-API-Key`**: autenticación simple sin dependencias extra.
+  - `BRIDGE_API_KEY` en `.env` o `--api-key` en CLI.
+  - Excluye `/health`, `/dashboard`, `/docs` para diagnóstico público.
+- **`--host`**: permite escuchar en `0.0.0.0` para servir en red local.
+- **`.env.example`**: template de configuración con variables documentadas.
+- **README**: sección "Exponer en red local o internet" con recomendaciones.
+- **README**: frase _"Si pierdo la llave, cambio la cerradura. Nadie se lleva mi jardín."_
+
+### Changed
+
+- `server.py` escucha en `127.0.0.1` por defecto (antes `0.0.0.0`).
+
+---
 ## [2.2.0] — 2026-06-04
 
 ### Added

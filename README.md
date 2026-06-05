@@ -460,7 +460,24 @@ Remove a saved conversation or reset the global usage counter.
 | Argument        | Default | Description                                  |
 | --------------- | ------: | -------------------------------------------- |
 | `--port`        |  `9090` | Local server port                            |
+| `--host`        |  `127.0.0.1` | Host (0.0.0.0 para red local)           |
 | `--no-headless` | `false` | Opens visible browser window for login/debug |
+| `--api-key`     |  (env)  | API key requerida en header X-API-Key        |
+
+---
+
+### ⚠️ Exponer en red local o internet
+
+Si habilitas `--host 0.0.0.0`, el puente queda accesible fuera de tu máquina.
+
+**Protección mínima recomendada:**
+1. Define `BRIDGE_API_KEY` en tu `.env` (copia `.env.example`).
+2. Todas las peticiones deben incluir el header `X-API-Key`.
+3. Si tu key se ve comprometida, **la cambias y reinicias**. Fin del problema.
+4. No expongas el puente sin esta protección.
+5. Es bajo tu responsabilidad. El candado está puesto; si alguien lo rompe, cambias el candado.
+
+> *"Si pierdo la llave, cambio la cerradura. Nadie se lleva mi jardín."*
 
 ---
 

@@ -8,11 +8,13 @@ Uso:
 
 import sys
 import time
+import uuid
+import os
 import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 
 from models import (
@@ -42,6 +44,8 @@ from session_recovery import SessionRecovery
 BRIDGE: ChatGPTBridge = None  # type: ignore
 HEADLESS = True
 PORT = 9090
+HOST = "127.0.0.1"
+API_KEY = os.getenv("BRIDGE_API_KEY", "")
 QUEUE: RequestQueue = RequestQueue(max_concurrent=1, max_queue=10)
 LIMITER: RateLimiter = RateLimiter(rpm=10, burst=3)
 SHUTDOWN: GracefulShutdown = GracefulShutdown(timeout=30.0)
@@ -115,8 +119,27 @@ async def _wait_for_login():
     # auth.ensure se llama dentro de bridge.send()
 
 
-app = FastAPI(title="ChatGPT Web Bridge", version="1.8.0", lifespan=lifespan)
+app = FastAPI(title="ChatGPT Web Bridge", version="3.3.0", lifespan=lifespan)
 app.include_router(v1_router)
+
+
+# ═══════════════════════════════════════════════════════════
+# Middleware: API Key (simple, sin castillos)
+# ═══════════════════════════════════════════════════════════
+
+SKIP_AUTH_PATHS = {"/health", "/docs", "/openapi.json", "/dashboard", "/favicon.ico"}
+
+
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    """Middleware opcional: si BRIDGE_API_KEY está definida, la exige."""
+    if API_KEY and request.url.path not in SKIP_AUTH_PATHS:
+        key = request.headers.get("X-API-Key", "")
+        if key != API_KEY:
+            return JSONResponse(status_code=401, content={
+                "error": {"code": "UNAUTHORIZED", "message": "X-API-Key inválida o ausente"}
+            })
+    return await call_next(request)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -346,12 +369,21 @@ def _format_extra(extra: dict) -> str:
 if __name__ == "__main__":
     import argparse
     p = argparse.ArgumentParser(description="ChatGPT Web Bridge")
-    p.add_argument("--port", type=int, default=9090)
-    p.add_argument("--no-headless", action="store_true")
+    p.add_argument("--port", type=int, default=9090, help="Puerto (default: 9090)")
+    p.add_argument("--host", type=str, default="127.0.0.1", help="Host (default: 127.0.0.1)")
+    p.add_argument("--no-headless", action="store_true", help="Navegador visible")
+    p.add_argument("--api-key", type=str, default="", help="API key requerida en X-API-Key header")
     args = p.parse_args()
     PORT = args.port
+    HOST = args.host
     HEADLESS = not args.no_headless
-    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
+    if args.api_key:
+        API_KEY = args.api_key
+    if not API_KEY:
+        API_KEY = os.getenv("BRIDGE_API_KEY", "")
+    secure = "🔒" if API_KEY else "🔓"
+    print(f"  Host: {HOST}:{PORT} {secure}")
+    uvicorn.run(app, host=HOST, port=PORT, log_level="warning")
 
 
 # ═══════════════════════════════════════════════════════════
