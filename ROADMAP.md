@@ -6,19 +6,18 @@ Status legend: `🔵 Planned` · `🟡 In Progress` · `🟢 Done`
 
 ---
 
-## 🟢 v1.x — Current (2026-06-04)
+## 🟢 v3.x — Agent & Production ✅ DONE
 
-- [x] OpenAI-compatible `/v1/chat/completions` + `/v1/models`
-- [x] Playwright browser automation (headless + visible)
-- [x] Model auto-detection and switching (GPT-4o, o3, o4-mini, GPT-4.1)
-- [x] Image upload to ChatGPT Web + DALL-E extraction
-- [x] Conversation persistence (`conversations.json`, `SessionStore`)
-- [x] Real token counting with `tiktoken` (`cl100k_base`)
-- [x] Cost tracker with per-model pricing + global/per-chat views
-- [x] Modular architecture (13 `.py` files, all <200 lines)
-- [x] Windows launchers (`run.ps1`, `run.bat`)
-- [x] MIT license, ISO 8601 changelog, conventional commits
-- [x] Enhanced `/health` endpoint with component diagnostics
+- [x] SSE Streaming real token-por-token (`sse_streamer.py`)
+- [x] Watchdog con auto-recuperación (`watchdog.py`)
+- [x] Session recovery cookies (`session_recovery.py`)
+- [x] Dashboard web HTML (`dashboard.py`, `GET /dashboard`)
+- [x] Config YAML externa (`config.yaml`)
+- [x] Agent system: RAG + Skills + Memory (`agent/`)
+- [x] Knowledge Writer: generación .md manual/automática (`agent/knowledge_writer.py`)
+- [x] Comandos `!save` en el chat del agente
+- [x] API Key middleware + `--host` multi-red (`X-API-Key`)
+- [x] `.env.example` con variables documentadas
 
 ---
 
