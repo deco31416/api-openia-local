@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Playwright](https://img.shields.io/badge/Playwright-1.50-2EAD33?style=flat-square\&logo=playwright\&logoColor=white)](https://playwright.dev/)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-30173D?style=flat-square)](https://docs.astral.sh/ruff/)
-[![Version](https://img.shields.io/badge/version-1.6.0-8A2BE2?style=flat-square)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.3.0-8A2BE2?style=flat-square)](./CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-experimental-FF6F00?style=flat-square)](./CHANGELOG.md)
 
 **OpenAI-compatible local API bridge powered by ChatGPT Web browser automation.**
