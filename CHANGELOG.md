@@ -8,6 +8,19 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.2.0] — 2026-06-04
+
+### Added
+
+- **Conversation tracking**: el bridge ahora lee y guarda el `conversation_id` de ChatGPT Web.
+- `X-Conversation-ID` header en la respuesta para continuar chats existentes.
+- `X-Conversation-URL` header con enlace directo a la conversación en `chatgpt.com/c/{id}`.
+- `prompter.get_conversation_id()` extrae el UUID de la URL actual.
+- `prompter.goto_conversation(id)` navega directamente a un chat existente.
+- Parámetro `conversation_id` en `bridge.send()` para reanudar conversaciones previas.
+
+---
+
 ## [1.1.0] — 2026-06-04
 
 ### Added

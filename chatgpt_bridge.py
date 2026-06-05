@@ -66,7 +66,8 @@ class ChatGPTBridge:
         model: str = "",
         images: list[dict] | None = None,
         new_chat: bool = False,
-    ) -> tuple[str, str, list[str]]:
+        conversation_id: str = "",
+    ) -> tuple[str, str, list[str], str]:
         """
         Envía prompt + imágenes opcionales a ChatGPT Web.
 
@@ -75,14 +76,19 @@ class ChatGPTBridge:
             model: Modelo deseado (cambia automáticamente si difiere).
             images: Lista de {"b64": "...", "mime": "image/..."} opcional.
             new_chat: Si True, crea nueva conversación.
+            conversation_id: Si se provee, continúa en esa conversación.
 
         Returns:
-            (respuesta_texto, modelo_real_usado, urls_imagenes_generadas)
+            (respuesta_texto, modelo_real, urls_imagenes, id_conversacion)
         """
         if not self._auth.is_authenticated:
             await self._auth.ensure()
 
-        if new_chat:
+        # Navegar a conversación existente si se especifica
+        if conversation_id and not new_chat:
+            await self._prompter.goto_conversation(conversation_id)
+            await asyncio.sleep(1)
+        elif new_chat:
             await self._prompter.new_conversation()
 
         # Subir imágenes si vienen
@@ -102,7 +108,9 @@ class ChatGPTBridge:
 
         response = await self._prompter.send(text)
         generated = await self._images.extract_generated()
-        return response, actual, generated
+        conv_id = await self._prompter.get_conversation_id()
+
+        return response, actual, generated, conv_id
 
     @property
     def is_authenticated(self) -> bool:

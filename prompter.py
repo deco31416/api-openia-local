@@ -16,10 +16,24 @@ class Prompter:
         self._timeout = timeout
 
     async def send(self, text: str) -> str:
-        """Envía un texto a ChatGPT y devuelve la respuesta completa."""
+        """Envía un texto a ChatGPT y devuelve la respuesta + URL de conversación."""
         await self._type(text)
         await self._click_send()
         return await self._wait()
+
+    async def get_conversation_id(self) -> str:
+        """Lee el ID de la conversación actual desde la URL."""
+        url = self._page.url
+        # https://chatgpt.com/c/6a222b03-8f3c-83e9-89c7-f37b0bf621e6
+        if "/c/" in url:
+            return url.split("/c/")[-1].split("?")[0].split("#")[0]
+        return ""
+
+    async def goto_conversation(self, conversation_id: str):
+        """Navega directamente a una conversación existente."""
+        url = f"https://chatgpt.com/c/{conversation_id}"
+        await self._page.goto(url, wait_until="domcontentloaded")
+        await asyncio.sleep(2)  # esperar que cargue el chat
 
     async def _type(self, text: str):
         """Escribe el prompt en el campo de entrada."""

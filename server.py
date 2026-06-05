@@ -17,7 +17,8 @@ import uuid
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 import uvicorn
 
 from models import (
@@ -128,8 +129,8 @@ async def list_models():
     return ModelsListResponse(data=AVAILABLE_MODELS)
 
 
-@app.post("/v1/chat/completions", response_model=ChatCompletionResponse)
-async def chat_completions(req: ChatCompletionRequest):
+@app.post("/v1/chat/completions")
+async def chat_completions(req: ChatCompletionRequest, request: Request):
     if BRIDGE is None:
         raise HTTPException(503, "Bridge no inicializado")
 
@@ -139,18 +140,21 @@ async def chat_completions(req: ChatCompletionRequest):
         raise HTTPException(400, "Sin contenido en el mensaje del usuario")
 
     images = ImageHandler.extract_base64_from_messages(msgs)
+    conv_in = request.headers.get("X-Conversation-ID", "")
     tag = f"🖼️ +" if images else ""
-    print(f"\n📤 [{req.model}] {tag} {prompt[:120]}{'...' if len(prompt) > 120 else ''}")
+    ctag = f" [chat:{conv_in[:8]}...]" if conv_in else ""
+    print(f"\n📤 [{req.model}]{tag}{ctag} {prompt[:120]}{'...' if len(prompt) > 120 else ''}")
 
     try:
-        text, actual_model, gen_imgs = await BRIDGE.send(
-            text=prompt, model=req.model, images=images or None
+        text, actual_model, gen_imgs, conv_id = await BRIDGE.send(
+            text=prompt, model=req.model, images=images or None,
+            conversation_id=conv_in,
         )
     except Exception as e:
         print(f"❌ Error: {e}")
         raise HTTPException(500, f"Error en ChatGPT Web: {str(e)}")
 
-    # Si ChatGPT generó imágenes, añadirlas al contenido de la respuesta
+    # Imágenes generadas → contenido multimodal
     content: str | list[dict] = text
     if gen_imgs:
         content_parts: list[dict] = [{"type": "text", "text": text}]
@@ -159,13 +163,14 @@ async def chat_completions(req: ChatCompletionRequest):
         content = content_parts  # type: ignore[assignment]
 
     imgs_tag = f" 🖼️ x{len(gen_imgs)}" if gen_imgs else ""
-    print(f"📥 [{actual_model}]{imgs_tag}: {text[:120]}{'...' if len(text) > 120 else ''}")
+    conv_tag = f" [{conv_id[:8]}]" if conv_id else ""
+    print(f"📥 [{actual_model}]{imgs_tag}{conv_tag}: {text[:120]}{'...' if len(text) > 120 else ''}")
 
     response_content = content if isinstance(content, str) else (
         content[0]["text"] if isinstance(content, list) and content else ""
     )
 
-    return ChatCompletionResponse(
+    payload = ChatCompletionResponse(
         id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
         created=int(time.time()),
         model=actual_model,
@@ -182,6 +187,12 @@ async def chat_completions(req: ChatCompletionRequest):
             total_tokens=_est_tokens(prompt) + _est_tokens(response_content),
         ),
     )
+
+    resp = JSONResponse(content=payload.model_dump())
+    if conv_id:
+        resp.headers["X-Conversation-ID"] = conv_id
+        resp.headers["X-Conversation-URL"] = f"https://chatgpt.com/c/{conv_id}"
+    return resp
 
 
 # ═══════════════════════════════════════════════════════════
