@@ -107,8 +107,8 @@ agent/memory/summary.json
 !agent/knowledge/errores-comunes.md
 !agent/skills/default.md
 !agent/skills/code-review.md
-!agent/skills/experto-python.md
-!agent/skills/explicar-a-ninos.md
+!agent/skills/fullstack-dev.md
+!agent/skills/explicacion-simple.md
 
 # Never commit authenticated ChatGPT browser sessions.
 
