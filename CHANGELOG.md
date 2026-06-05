@@ -8,6 +8,24 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [2.2.0] — 2026-06-04
+
+### Added
+
+- **`antiban.py`**: simula comportamiento humano para evitar detección y baneo.
+- `thinking_pause()`: delay aleatorio 0.5-3s antes de escribir (simula "pensar").
+- `typing_delay()`: delay proporcional a longitud del texto (~60 WPM).
+- `reading_pause()`: pausa 1-4s después de recibir respuesta (simula "leer").
+- `inter_request_pause()`: delay 1-3s entre requests, 5-15s cada 5 requests.
+- Integrado en `chat_handler.py` con `human_mode=True` por defecto.
+
+### Why
+
+- ChatGPT detecta bots por velocidad constante, sin pausas, sin variabilidad.
+- AntiBan inyecta comportamiento humano real para evitar bans a alta velocidad.
+
+---
+
 ## [2.1.0] — 2026-06-04
 
 ### Added

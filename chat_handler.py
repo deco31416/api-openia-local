@@ -18,6 +18,10 @@ from token_counter import count_tokens
 from session_store import get_store
 from cost_tracker import get_tracker
 from error_codes import error_response
+from antiban import AntiBan
+
+# Anti-ban global (simula humano)
+_antiban = AntiBan(human_mode=True, wpm=60)
 
 
 def _last_user_text(messages: list) -> str:
@@ -47,6 +51,12 @@ async def process_chat(req: ChatCompletionRequest, request: Request, bridge):
     tag = f"🖼️ +" if images else ""
     ctag = f" [chat:{conv_in[:8]}...]" if conv_in else ""
     print(f"\n📤 [{req.model}]{tag}{ctag} {prompt[:120]}{'...' if len(prompt) > 120 else ''}")
+
+    # 🛡️ AntiBan: simular pausa humana entre requests
+    await _antiban.inter_request_pause()
+
+    # 🛡️ AntiBan: "pensar" antes de escribir
+    await _antiban.thinking_pause()
 
     try:
         text, actual_model, gen_imgs, conv_id = await bridge.send(
