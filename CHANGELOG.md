@@ -120,7 +120,7 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
-## [2.0.0] — 2026-06-04
+## [3.0.0] — 2026-06-04
 
 ### Added — Reliability & Robustness (v2.0 roadmap completo)
 
@@ -246,7 +246,7 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
-## [1.2.0] — 2026-06-04
+## [3.3.0] — 2026-06-04
 
 ### Added
 
