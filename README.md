@@ -7,7 +7,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square\&logo=fastapi\&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Playwright](https://img.shields.io/badge/Playwright-1.50-2EAD33?style=flat-square\&logo=playwright\&logoColor=white)](https://playwright.dev/)
 [![Code Style](https://img.shields.io/badge/code%20style-ruff-30173D?style=flat-square)](https://docs.astral.sh/ruff/)
-[![Version](https://img.shields.io/badge/version-1.0.0-8A2BE2?style=flat-square)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-8A2BE2?style=flat-square)](./CHANGELOG.md)
 [![Status](https://img.shields.io/badge/status-experimental-FF6F00?style=flat-square)](./CHANGELOG.md)
 
 **OpenAI-compatible local API bridge powered by ChatGPT Web browser automation.**
@@ -79,15 +79,19 @@ It is **not recommended** for production, public deployment, resale as a hosted 
 
 ### Main Features
 
-* OpenAI-compatible `/v1/chat/completions` endpoint
-* OpenAI-compatible `/v1/models` endpoint
-* Local FastAPI server
-* Playwright-based browser automation
-* ChatGPT Web session reuse
-* JSON responses compatible with OpenAI SDK clients
-* Basic health endpoint
-* Windows-friendly launch scripts
-* MIT license under **deco31416.com**
+- **OpenAI-compatible** `/v1/chat/completions` + `/v1/models` endpoints
+- **Image support**: upload images to ChatGPT Web, extract DALL-E generated images
+- **Model switching**: auto-detect and switch models (GPT-4o, o3, o4-mini, GPT-4.1)
+- **Conversation tracking**: persist chat IDs in `conversations.json` (survives reboots)
+- **Cost tracker**: real token counting with `tiktoken` + USD cost per model
+- **Per-chat analytics**: `/v1/conversations/{id}/usage` for individual chat costs
+- **Global usage**: `/v1/usage` aggregated token stats across all chats
+- **Session persistence**: `SessionStore` saves conversation metadata locally
+- **Fast mode**: instant typing via `fill()` + 300ms polling
+- **Modular architecture**: 13 `.py` files, all under 200 lines
+- **Playwright-based** browser automation (headless or visible)
+- **Windows-friendly** launch scripts (`run.ps1`, `run.bat`)
+- **MIT license** © **deco31416.com**
 
 ---
 
@@ -131,15 +135,25 @@ sequenceDiagram
 
 ```text
 idea-loca/
-├── server.py              # FastAPI application entry point
-├── chatgpt_bridge.py      # Playwright automation layer
-├── models.py              # Pydantic request/response schemas
+├── server.py              # FastAPI app + lifecycle
+├── routes.py              # /v1/conversations + /v1/usage
+├── chatgpt_bridge.py      # Main orchestrator
+├── browser.py             # Playwright browser lifecycle
+├── auth.py                # Session detection
+├── prompter.py            # Type, send, wait for response
+├── model_manager.py       # Model detection + switching
+├── image_handler.py       # Image upload + DALL-E extraction
+├── css_selectors.py       # ChatGPT UI selectors
+├── session_store.py       # Conversation persistence (JSON)
+├── cost_tracker.py        # Token accumulation + USD cost
+├── token_counter.py       # tiktoken real token counting
+├── models.py              # Pydantic schemas
 ├── requirements.txt       # Python dependencies
-├── run.ps1                # PowerShell launcher for Windows
-├── run.bat                # Batch launcher for Windows
-├── CHANGELOG.md           # Version history
+├── run.ps1 / run.bat      # Windows launchers
+├── .gitignore
+├── CHANGELOG.md           # Version history (ISO 8601)
 ├── CONTRIBUTING.md        # Contribution guidelines
-├── LICENSE                # MIT License - deco31416.com
+├── LICENSE                # MIT - deco31416.com
 └── README.md              # Project documentation
 ```
 
@@ -374,6 +388,67 @@ OpenAI-compatible chat completions endpoint.
 | `max_tokens`  |  number |       No | Accepted for compatibility                  |
 | `stream`      | boolean |       No | May be accepted depending on implementation |
 
+#### Response Headers
+
+| Header | Description |
+|---|---|
+| `X-Conversation-ID` | ChatGPT conversation UUID |
+| `X-Conversation-URL` | Direct link to the chat (`chatgpt.com/c/{id}`) |
+
+---
+
+### `GET /v1/conversations`
+
+Lists all saved conversations with their token usage and metadata.
+
+```bash
+curl http://localhost:9090/v1/conversations
+```
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "conversation_id": "a1b2c3d4...",
+      "model": "gpt-4o",
+      "url": "https://chatgpt.com/c/a1b2c3d4...",
+      "prompt_tokens": 2500,
+      "completion_tokens": 12000,
+      "total_tokens": 14500,
+      "last_used_at": 1715367100,
+      "summary": "Explícame Rust..."
+    }
+  ]
+}
+```
+
+---
+
+### `GET /v1/conversations/{id}/usage`
+
+Per-chat token breakdown and estimated USD cost.
+
+```bash
+curl http://localhost:9090/v1/conversations/a1b2c3d4/usage
+```
+
+---
+
+### `GET /v1/usage`
+
+Global accumulated token usage and cost across all chats.
+
+```bash
+curl http://localhost:9090/v1/usage
+```
+
+---
+
+### `DELETE /v1/conversations/{id}` · `DELETE /v1/usage`
+
+Remove a saved conversation or reset the global usage counter.
+
 ---
 
 ## Configuration
@@ -517,7 +592,7 @@ Avoid:
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Symptom                       | Likely Cause                        | Suggested Fix                                    |
 | ----------------------------- | ----------------------------------- | ------------------------------------------------ |
@@ -531,7 +606,7 @@ Avoid:
 
 ---
 
-## 🧪 Local Test
+## Local Test
 
 After starting the server, run:
 

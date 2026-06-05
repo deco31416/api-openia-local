@@ -11,7 +11,6 @@ from auth import AuthManager
 from prompter import Prompter
 from model_manager import ModelManager
 from image_handler import ImageHandler
-from session_store import get_store
 
 
 class ChatGPTBridge:

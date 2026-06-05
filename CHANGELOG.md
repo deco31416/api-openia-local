@@ -8,6 +8,21 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.7.0] — 2026-06-04
+
+### Added
+
+- `routes.py` — router separado para endpoints de conversaciones y uso.
+- `GET /v1/conversations/{id}/usage` — costo individual por chat.
+
+### Changed
+
+- `server.py` reducido de 243 a 197 líneas (rutas extraídas a `routes.py`).
+- `chatgpt_bridge.py` ya no importa `session_store` (save se hace en server).
+- README actualizado con todas las features v1.6.0+ y nuevos endpoints.
+
+---
+
 ## [1.6.0] — 2026-06-04
 
 ### Added

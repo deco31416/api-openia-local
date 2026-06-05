@@ -35,7 +35,8 @@ from chatgpt_bridge import ChatGPTBridge
 from image_handler import ImageHandler
 from token_counter import count_tokens
 from session_store import get_store
-from cost_tracker import get_tracker, get_price
+from cost_tracker import get_tracker
+from routes import router as v1_router
 
 
 # ═══════════════════════════════════════════════════════════
@@ -89,7 +90,8 @@ async def _wait_for_login():
     # auth.ensure se llama dentro de bridge.send()
 
 
-app = FastAPI(title="ChatGPT Web Bridge", version="1.1.0", lifespan=lifespan)
+app = FastAPI(title="ChatGPT Web Bridge", version="1.6.0", lifespan=lifespan)
+app.include_router(v1_router)
 
 
 # ═══════════════════════════════════════════════════════════
@@ -205,64 +207,6 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
         resp.headers["X-Conversation-URL"] = f"https://chatgpt.com/c/{conv_id}"
     return resp
 
-
-# ═══════════════════════════════════════════════════════════
-# Conversaciones (session store)
-# ═══════════════════════════════════════════════════════════
-
-@app.get("/v1/conversations")
-async def list_conversations():
-    """Lista todas las conversaciones guardadas (sobrevive a reinicios)."""
-    store = get_store()
-    return {"object": "list", "data": store.list_all()}
-
-
-@app.get("/v1/conversations/{conversation_id}/usage")
-async def conversation_usage(conversation_id: str):
-    """Uso de tokens y costo estimado para una conversación específica."""
-    store = get_store()
-    entry = store.get(conversation_id)
-    if not entry:
-        raise HTTPException(404, f"Conversación '{conversation_id}' no encontrada")
-    pt = entry.get("prompt_tokens", 0)
-    ct = entry.get("completion_tokens", 0)
-    model = entry.get("model", "gpt-4o")
-    ci, co, total = get_price(model, pt, ct)
-    return {
-        "conversation_id": conversation_id,
-        "model": model,
-        "url": entry.get("url"),
-        "prompt_tokens": pt,
-        "completion_tokens": ct,
-        "total_tokens": pt + ct,
-        "cost_input_usd": ci,
-        "cost_output_usd": co,
-        "cost_total_usd": total,
-    }
-
-
-@app.delete("/v1/conversations/{conversation_id}")
-async def delete_conversation(conversation_id: str):
-    """Elimina una conversación del store."""
-    store = get_store()
-    entry = store.get(conversation_id)
-    if not entry:
-        raise HTTPException(404, f"Conversación '{conversation_id}' no encontrada")
-    store.delete(conversation_id)
-    return {"deleted": True, "conversation_id": conversation_id}
-
-
-@app.get("/v1/usage")
-async def usage():
-    """Resumen de tokens acumulados y costo estimado en USD."""
-    return get_tracker().summary()
-
-
-@app.delete("/v1/usage")
-async def reset_usage():
-    """Reinicia el contador de tokens y costos."""
-    get_tracker().reset()
-    return {"reset": True}
 
 # ═══════════════════════════════════════════════════════════
 # Entry
