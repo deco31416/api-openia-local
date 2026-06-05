@@ -21,6 +21,7 @@ export default function DashboardPage() {
   const [model, setModel] = useState("o3-5.5-thinking");
   const [activeSection, setActiveSection] = useState("health");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   // Auto-collapse sidebar on mobile
@@ -61,6 +62,9 @@ export default function DashboardPage() {
           onSelect={setActiveSection}
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+          mobileOpen={mobileOpen}
+          onMobileClose={() => setMobileOpen(false)}
+          isMobile={isMobile}
         />
 
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
