@@ -8,6 +8,27 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [2.1.0] — 2026-06-04
+
+### Added
+
+- **Full OpenAI API compatibility**: todos los parámetros del spec oficial.
+- `ContentPart`, `FunctionCall`, `ToolCall`, `ToolMessage` models.
+- `ResponseFormat` (text/json_object/json_schema), `StreamOptions`.
+- `seed`, `logprobs`, `top_logprobs`, `logit_bias`, `tools`, `tool_choice`.
+- `parallel_tool_calls`, `max_completion_tokens`.
+- `ChatCompletionChunk` para streaming SSE chunks.
+- `system_fingerprint`, `service_tier` en ChatCompletionResponse.
+- `prompt_tokens_details`, `completion_tokens_details` en UsageInfo.
+- Validación de rangos Pydantic (`ge=0, le=2`) en temperature/presence_penalty.
+
+### Changed
+
+- `models.py` completo reescrito con tipos fuertes y specs oficiales OpenAI.
+- `ChatMessage.content` ahora acepta `List[ContentPart]` tipado (antes `List[dict]`).
+
+---
+
 ## [2.0.0] — 2026-06-04
 
 ### Added — Reliability & Robustness (v2.0 roadmap completo)
