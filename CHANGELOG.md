@@ -246,6 +246,22 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [3.4.0] — 2026-06-05
+
+### Added — Next.js TypeScript Dashboard
+
+- **`dashboard/`**: Next.js + TypeScript + Tailwind CSS.
+  - `src/components/HealthCard.tsx`: estado del bridge en tiempo real.
+  - `src/components/UsageCard.tsx`: tokens acumulados + costo USD.
+  - `src/components/ConversationsList.tsx`: lista de chats con links.
+  - `src/lib/api.ts`: cliente HTTP tipado para la API del bridge.
+  - `src/lib/theme.ts`: tokens de diseño centralizados + `cn()` helper.
+  - `src/types/api.ts`: tipos TypeScript para todas las respuestas.
+  - `src/app/globals.css`: tema oscuro con variables CSS.
+  - `pnpm` como gestor de paquetes.
+
+---
+
 ## [3.3.0] — 2026-06-04
 
 ### Added
