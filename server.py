@@ -195,6 +195,91 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
 
 
 # ═══════════════════════════════════════════════════════════
+# Agent endpoint (v3.1.0)
+# ═══════════════════════════════════════════════════════════
+
+from agent.agent import SimpleAgent
+
+_agent = SimpleAgent()
+
+
+@app.post("/v1/agent/chat")
+async def agent_chat(req: ChatCompletionRequest, request: Request):
+    """
+    Chat con superpoderes: RAG + Skills + Memoria.
+    El cliente puede pasar skill en el header X-Skill.
+    """
+    skill = request.headers.get("X-Skill", "default")
+    use_memory = request.headers.get("X-Use-Memory", "true").lower() == "true"
+
+    msgs = [m.model_dump() for m in req.messages]
+    user_text = ""
+    for m in reversed(msgs):
+        if m.get("role") == "user":
+            c = m.get("content", "")
+            user_text = c if isinstance(c, str) else str(c)
+            break
+
+    if not user_text:
+        code, body = error_response("BAD_REQUEST", detail="Sin mensaje del usuario")
+        return JSONResponse(content=body, status_code=code)
+
+    # Construir prompt enriquecido
+    enriched = _agent.build_prompt(user_text, skill=skill, use_memory=use_memory)
+    print(f"\n🎯 [agent][{skill}] {user_text[:120]}{'...' if len(user_text) > 120 else ''}")
+
+    try:
+        async with QUEUE:
+            async with LIMITER:
+                async with SHUTDOWN.track():
+                    text, actual_model, gen_imgs, conv_id = await BRIDGE.send(
+                        text=enriched, model=req.model,
+                    )
+    except Exception as e:
+        code, body = error_response("INTERNAL_ERROR", detail=str(e))
+        return JSONResponse(content=body, status_code=code)
+
+    # Guardar en memoria
+    conv_id = conv_id or f"agent-{uuid.uuid4().hex[:8]}"
+    tags = [skill] if skill != "default" else []
+    _agent.remember(conv_id, [
+        {"role": "user", "content": user_text},
+        {"role": "assistant", "content": text},
+    ], tags=tags)
+
+    resp = JSONResponse(content=ChatCompletionResponse(
+        id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
+        created=int(time.time()),
+        model=actual_model,
+        choices=[ChatChoice(index=0, message=ChatMessage(role="assistant", content=text), finish_reason="stop")],
+        usage=UsageInfo(prompt_tokens=count_tokens(enriched), completion_tokens=count_tokens(text), total_tokens=count_tokens(enriched) + count_tokens(text)),
+    ).model_dump())
+    if conv_id:
+        resp.headers["X-Conversation-ID"] = conv_id
+    return resp
+
+
+@app.get("/v1/agent/memory")
+async def agent_memory():
+    """Lista todas las conversaciones del agente."""
+    return {"object": "list", "data": _agent.memory.list_all()}
+
+
+@app.delete("/v1/agent/memory/{conv_id}")
+async def agent_forget(conv_id: str):
+    """Elimina una conversación de la memoria del agente."""
+    _agent.forget(conv_id)
+    return {"deleted": True, "conversation_id": conv_id}
+
+
+@app.post("/v1/agent/reload")
+async def agent_reload():
+    """Recarga conocimiento y skills en caliente (hot-reload)."""
+    _agent.reload_knowledge()
+    return {"reloaded": True}
+
+
+# ═══════════════════════════════════════════════════════════
 # Entry
 # ═══════════════════════════════════════════════════════════
 
