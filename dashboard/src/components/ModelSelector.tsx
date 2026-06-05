@@ -13,12 +13,6 @@ interface ModelInfo {
 const MODELS: ModelInfo[] = [
   { id: "o3-5.5-thinking", label: "o3 5.5 Thinking", icon: <Brain className="w-4 h-4 text-purple-400" /> },
   { id: "o3-5.5-instant", label: "o3 5.5 Instant", icon: <Zap className="w-4 h-4 text-yellow-400" /> },
-  { id: "o3-5.4-thinking", label: "o3 5.4 Thinking", icon: <Brain className="w-4 h-4 text-purple-300" /> },
-  { id: "o3-5.4-instant", label: "o3 5.4 Instant", icon: <Zap className="w-4 h-4 text-yellow-300" /> },
-  { id: "o4-mini", label: "o4-mini", icon: <Cpu className="w-4 h-4 text-cyan-400" /> },
-  { id: "gpt-4.1", label: "GPT-4.1", icon: <Rocket className="w-4 h-4 text-orange-400" /> },
-  { id: "gpt-4o", label: "GPT-4o", icon: <Sparkles className="w-4 h-4 text-green-400" /> },
-  { id: "gpt-4o-mini", label: "GPT-4o Mini", icon: <Zap className="w-4 h-4 text-green-300" /> },
 ];
 
 interface ModelSelectorProps {

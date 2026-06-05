@@ -55,12 +55,6 @@ SESSION_RECOVERY: SessionRecovery = None  # type: ignore
 AVAILABLE_MODELS = [
     ModelInfo(id="o3-5.5-instant", created=1750000000, owned_by="chatgpt-web"),
     ModelInfo(id="o3-5.5-thinking", created=1750000001, owned_by="chatgpt-web"),
-    ModelInfo(id="o3-5.4-instant", created=1750000002, owned_by="chatgpt-web"),
-    ModelInfo(id="o3-5.4-thinking", created=1750000003, owned_by="chatgpt-web"),
-    ModelInfo(id="o4-mini", created=1735680001, owned_by="chatgpt-web"),
-    ModelInfo(id="gpt-4o", created=1715367049, owned_by="chatgpt-web"),
-    ModelInfo(id="gpt-4o-mini", created=1715367050, owned_by="chatgpt-web"),
-    ModelInfo(id="gpt-4.1", created=1740000000, owned_by="chatgpt-web"),
 ]
 
 

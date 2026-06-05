@@ -42,11 +42,6 @@ export function ChatBox({ onSend, apiKey }: ChatBoxProps) {
           >
             <option value="o3-5.5-thinking">o3 5.5 Thinking</option>
             <option value="o3-5.5-instant">o3 5.5 Instant</option>
-            <option value="o3-5.4-thinking">o3 5.4 Thinking</option>
-            <option value="o3-5.4-instant">o3 5.4 Instant</option>
-            <option value="o4-mini">o4-mini</option>
-            <option value="gpt-4o">GPT-4o</option>
-            <option value="gpt-4o-mini">GPT-4o Mini</option>
           </select>
           <select
             value={skill}

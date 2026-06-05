@@ -67,9 +67,6 @@ MODEL_FALLBACKS: dict[str, list[str]] = {
     # o3 5.5
     "o3-5.5-instant": ["o3 5.5 instant", "O3 5.5 Instant"],
     "o3-5.5-thinking": ["o3 5.5 thinking", "O3 5.5 Thinking"],
-    # o3 5.4
-    "o3-5.4-instant": ["o3 5.4 instant", "O3 5.4 Instant"],
-    "o3-5.4-thinking": ["o3 5.4 thinking", "O3 5.4 Thinking"],
     # GPT family
     "o4-mini": ["o4-mini", "O4-mini", "o4 mini", "O4 Mini"],
     "gpt-4o": ["GPT-4o", "GPT-4", "gpt-4", "4o"],
