@@ -8,6 +8,36 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [2.0.0] — 2026-06-04
+
+### Added — Reliability & Robustness (v2.0 roadmap completo)
+
+- `queue_manager.py`: cola FIFO asíncrona con semáforo de concurrencia (max_concurrent=1, max_queue=10).
+- `rate_limiter.py`: token bucket con RPM configurable (default 10 RPM, burst=3).
+- `selector_recovery.py`: reintentos con backoff exponencial + fallback de selectores.
+- `error_codes.py`: catálogo estructurado (QUEUE_FULL, RATE_LIMITED, TIMEOUT, BRIDGE_DOWN, etc).
+- `graceful_shutdown.py`: drena requests pendientes en SIGINT/SIGTERM con timeout 30s.
+- `chat_handler.py`: handler separado con toda la lógica de procesamiento de chat.
+- `/health` ahora reporta queue, rate_limiter y graceful_shutdown status.
+
+### Changed
+
+- `server.py`: reducido de 225 → 159 líneas con integración de todos los módulos v2.0.
+- Todo error usa `error_response()` con códigos estructurados + `retry_after`.
+- Lifespan incluye `SHUTDOWN.register_signals()` + `wait_for_drain()`.
+- `health_diagnostics.py` reporta 9 componentes (antes 5).
+
+### Roadmap Status
+
+- [x] Request queue handling
+- [x] Local rate limiting
+- [x] Selector recovery
+- [x] Structured error codes
+- [x] Graceful shutdown
+- [x] Better logging and diagnostics
+
+---
+
 ## [1.8.0] — 2026-06-04
 
 ### Added

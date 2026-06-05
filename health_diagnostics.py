@@ -68,6 +68,21 @@ def diagnose(bridge) -> HealthResponse:
     except Exception:
         components.append(ComponentStatus(name="tiktoken", status="degraded", detail="Fallback len/4"))
 
+    # 6. Queue + Rate Limiter (from global state)
+    from queue_manager import RequestQueue
+    from rate_limiter import RateLimiter
+    from graceful_shutdown import GracefulShutdown
+    import server as srv
+    if hasattr(srv, 'QUEUE'):
+        q = srv.QUEUE
+        components.append(ComponentStatus(name="queue", status="ok", detail=f"{q.pending} en cola"))
+    if hasattr(srv, 'LIMITER'):
+        rl = srv.LIMITER
+        components.append(ComponentStatus(name="rate_limiter", status="ok", detail=f"{rl.stats['rpm']} RPM"))
+    if hasattr(srv, 'SHUTDOWN'):
+        sd = srv.SHUTDOWN
+        components.append(ComponentStatus(name="shutdown", status="ok" if not sd.shutting_down else "shutting_down", detail=f"{sd.active_requests} activos"))
+
     uptime = time.time() - _start_time if _start_time > 0 else 0.0
 
     return HealthResponse(

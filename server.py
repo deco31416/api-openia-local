@@ -8,32 +8,29 @@ Uso:
 
 import sys
 import time
-import uuid
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 import uvicorn
 
 from models import (
-    ChatCompletionRequest,
-    ChatCompletionResponse,
-    ChatChoice,
-    ChatMessage,
-    UsageInfo,
-    ModelInfo,
-    ModelsListResponse,
-    HealthResponse,
-    ComponentStatus,
+    ChatCompletionRequest, ChatCompletionResponse,
+    ChatChoice, ChatMessage, UsageInfo,
+    ModelInfo, ModelsListResponse,
+    HealthResponse, ComponentStatus,
 )
 from chatgpt_bridge import ChatGPTBridge
-from image_handler import ImageHandler
-from token_counter import count_tokens
-from session_store import get_store
-from cost_tracker import get_tracker
 from routes import router as v1_router
 from health_diagnostics import diagnose, set_start_time
+from chat_handler import process_chat
+
+# v2.0 — Reliability modules
+from queue_manager import RequestQueue, QueueFullError, QueueTimeoutError
+from rate_limiter import RateLimiter
+from error_codes import error_response
+from graceful_shutdown import GracefulShutdown, ShuttingDownError
 
 
 # ═══════════════════════════════════════════════════════════
@@ -43,6 +40,9 @@ from health_diagnostics import diagnose, set_start_time
 BRIDGE: ChatGPTBridge = None  # type: ignore
 HEADLESS = True
 PORT = 9090
+QUEUE: RequestQueue = RequestQueue(max_concurrent=1, max_queue=10)
+LIMITER: RateLimiter = RateLimiter(rpm=10, burst=3)
+SHUTDOWN: GracefulShutdown = GracefulShutdown(timeout=30.0)
 
 AVAILABLE_MODELS = [
     ModelInfo(id="gpt-4o", created=1715367049, owned_by="chatgpt-web"),
@@ -69,8 +69,11 @@ async def lifespan(app: FastAPI):
     BRIDGE = await ChatGPTBridge(headless=HEADLESS).start()
     if not BRIDGE.is_authenticated:
         await _wait_for_login()
-    print("\n✅ Bridge listo! API activa.\n")
+    SHUTDOWN.register_signals()
+    print(f"\n✅ Bridge listo! API activa (cola:{QUEUE._max_queue} rpm:{LIMITER._rate*60:.0f}).\n")
     yield
+    print("\n🛑 Apagando...")
+    await SHUTDOWN.wait_for_drain()
     await BRIDGE.stop()
     print("\n👋 Bridge cerrado.\n")
 
@@ -133,80 +136,25 @@ async def list_models():
 
 @app.post("/v1/chat/completions")
 async def chat_completions(req: ChatCompletionRequest, request: Request):
-    if BRIDGE is None:
-        raise HTTPException(503, "Bridge no inicializado")
-
-    msgs = [m.model_dump() for m in req.messages]
-    prompt = _last_user_text(msgs)
-    if not prompt and not ImageHandler.extract_base64_from_messages(msgs):
-        raise HTTPException(400, "Sin contenido en el mensaje del usuario")
-
-    images = ImageHandler.extract_base64_from_messages(msgs)
-    conv_in = request.headers.get("X-Conversation-ID", "")
-    tag = f"🖼️ +" if images else ""
-    ctag = f" [chat:{conv_in[:8]}...]" if conv_in else ""
-    print(f"\n📤 [{req.model}]{tag}{ctag} {prompt[:120]}{'...' if len(prompt) > 120 else ''}")
+    # v2.0: Queue + Rate Limit + Shutdown
+    if SHUTDOWN.shutting_down:
+        code, body = error_response("SHUTTING_DOWN")
+        return JSONResponse(content=body, status_code=code)
 
     try:
-        text, actual_model, gen_imgs, conv_id = await BRIDGE.send(
-            text=prompt, model=req.model, images=images or None,
-            conversation_id=conv_in,
-        )
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        raise HTTPException(500, f"Error en ChatGPT Web: {str(e)}")
-
-    # Imágenes generadas → contenido multimodal
-    content: str | list[dict] = text
-    if gen_imgs:
-        content_parts: list[dict] = [{"type": "text", "text": text}]
-        for url in gen_imgs:
-            content_parts.append({"type": "image_url", "image_url": {"url": url}})
-        content = content_parts  # type: ignore[assignment]
-
-    imgs_tag = f" 🖼️ x{len(gen_imgs)}" if gen_imgs else ""
-    conv_tag = f" [{conv_id[:8]}]" if conv_id else ""
-    print(f"📥 [{actual_model}]{imgs_tag}{conv_tag}: {text[:120]}{'...' if len(text) > 120 else ''}")
-
-    response_content = content if isinstance(content, str) else (
-        content[0]["text"] if isinstance(content, list) and content else ""
-    )
-
-    prompt_tk = count_tokens(prompt)
-    completion_tk = count_tokens(response_content)
-
-    # Registrar en el cost tracker (global)
-    tracker = get_tracker()
-    tracker.track(actual_model, prompt_tk, completion_tk)
-
-    # Registrar en el session store (por chat)
-    if conv_id:
-        store = get_store()
-        store.save(conv_id, actual_model, prompt, prompt_tk, completion_tk)
-
-    payload = ChatCompletionResponse(
-        id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
-        created=int(time.time()),
-        model=actual_model,
-        choices=[
-            ChatChoice(
-                index=0,
-                message=ChatMessage(role="assistant", content=content),
-                finish_reason="stop",
-            )
-        ],
-        usage=UsageInfo(
-            prompt_tokens=prompt_tk,
-            completion_tokens=completion_tk,
-            total_tokens=prompt_tk + completion_tk,
-        ),
-    )
-
-    resp = JSONResponse(content=payload.model_dump())
-    if conv_id:
-        resp.headers["X-Conversation-ID"] = conv_id
-        resp.headers["X-Conversation-URL"] = f"https://chatgpt.com/c/{conv_id}"
-    return resp
+        async with QUEUE:
+            async with LIMITER:
+                async with SHUTDOWN.track():
+                    return await process_chat(req, request, BRIDGE)
+    except QueueFullError:
+        code, body = error_response("QUEUE_FULL", retry_after=5)
+        return JSONResponse(content=body, status_code=code)
+    except QueueTimeoutError:
+        code, body = error_response("RATE_LIMITED", retry_after=10)
+        return JSONResponse(content=body, status_code=code)
+    except ShuttingDownError:
+        code, body = error_response("SHUTTING_DOWN")
+        return JSONResponse(content=body, status_code=code)
 
 
 # ═══════════════════════════════════════════════════════════

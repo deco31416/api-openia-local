@@ -22,15 +22,16 @@ Status legend: `🔵 Planned` · `🟡 In Progress` · `🟢 Done`
 
 ---
 
-## 🔵 v2.0 — Reliability & Robustness
+## � v2.0 — Reliability & Robustness ✅ DONE
 
-- [ ] **Request queue**: FIFO queue with configurable concurrency (avoid flooding ChatGPT Web)
-- [ ] **Local rate limiting**: token bucket algorithm, configurable RPM
-- [ ] **Selector recovery**: auto-fallback when ChatGPT UI changes (regex + XPath)
-- [ ] **Retry logic**: exponential backoff on timeout/rate-limit errors
-- [ ] **Conversation isolation**: optional `X-Conversation-ID` enforcement (strict mode)
-- [ ] **Structured error codes**: standard HTTP 429/503 with `Retry-After` headers
-- [ ] **Graceful shutdown**: drain in-flight requests before stopping bridge
+- [x] Request queue: FIFO queue with configurable concurrency (`queue_manager.py`)
+- [x] Local rate limiting: token bucket, configurable RPM (`rate_limiter.py`)
+- [x] Selector recovery: auto-fallback + exponential backoff (`selector_recovery.py`)
+- [x] Structured error codes: standard HTTP errors + Retry-After (`error_codes.py`)
+- [x] Graceful shutdown: drain in-flight requests on SIGINT/SIGTERM (`graceful_shutdown.py`)
+- [x] Conversation isolation: `X-Conversation-ID` header (strict mode via session store)
+- [x] Better logging and diagnostics: health endpoint with 9 components
+- [x] Modular extraction: `chat_handler.py` separates business logic from routing
 
 ---
 
