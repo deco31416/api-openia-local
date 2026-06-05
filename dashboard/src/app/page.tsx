@@ -38,14 +38,14 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={cn(theme.colors.bg, theme.colors.text, "min-h-screen")}>
+    <div className={cn(theme.colors.bg, theme.colors.text, "min-h-screen flex flex-col")}>
       <Navbar
         status={health?.status || "unhealthy"}
         version={health?.version || "?.?.?"}
         uptime={health?.uptime_seconds || 0}
       />
 
-      <main className="max-w-7xl mx-auto p-4 md:p-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           <HealthCard />
           <UsageCard />
@@ -59,8 +59,20 @@ export default function DashboardPage() {
         </div>
       </main>
 
-      <footer className={cn(theme.colors.textMuted, "text-center text-xs py-4 border-t", theme.colors.border)}>
-        v{health?.version || "?.?.?"} · Auto-refresh · © 2026 deco31416.com
+      <footer className={cn(theme.colors.card, theme.colors.border, "border-t px-5 py-4 mt-auto")}>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#8b949e]">
+          <div className="flex items-center gap-2">
+            <span>🧠</span>
+            <span>ChatGPT Web Bridge</span>
+            <span className="text-[#30363d]">|</span>
+            <span>v{health?.version || "?.?.?"}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span>Auto-refresh 10-20s</span>
+            <span className="text-[#30363d]">|</span>
+            <span>© 2026 deco31416.com</span>
+          </div>
+        </div>
       </footer>
     </div>
   );
