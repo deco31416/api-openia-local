@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Send, Loader2 } from "lucide-react";
 import { theme, cn } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 
@@ -30,7 +31,7 @@ export function ChatBox({ onSend, apiKey }: ChatBoxProps) {
   };
 
   return (
-    <Card title="💬 Chat Rápido">
+    <Card title={<><Send className="w-5 h-5 text-cyan-400" /><span>Chat Rapido</span></>}>
       <div className="space-y-3">
         {/* Selector de modelo */}
         <div className="flex gap-2">
@@ -39,10 +40,13 @@ export function ChatBox({ onSend, apiKey }: ChatBoxProps) {
             onChange={(e) => setModel(e.target.value)}
             className="bg-[#0d1117] border border-[#30363d] rounded-lg px-3 py-1.5 text-sm text-[#c9d1d9]"
           >
+            <option value="o3-5.5-thinking">o3 5.5 Thinking</option>
+            <option value="o3-5.5-instant">o3 5.5 Instant</option>
+            <option value="o3-5.4-thinking">o3 5.4 Thinking</option>
+            <option value="o3-5.4-instant">o3 5.4 Instant</option>
+            <option value="o4-mini">o4-mini</option>
             <option value="gpt-4o">GPT-4o</option>
             <option value="gpt-4o-mini">GPT-4o Mini</option>
-            <option value="o3">o3</option>
-            <option value="o4-mini">o4-mini</option>
           </select>
           <select
             value={skill}
@@ -77,7 +81,7 @@ export function ChatBox({ onSend, apiKey }: ChatBoxProps) {
               : "bg-[#238636] text-white hover:bg-[#2ea043]"
           )}
         >
-          {loading ? "⏳ Enviando..." : "📤 Enviar"}
+          {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</> : <><Send className="w-4 h-4" /> Enviar</>}
         </button>
 
         {/* Respuesta */}

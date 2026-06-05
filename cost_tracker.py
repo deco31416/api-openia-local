@@ -14,12 +14,17 @@ from typing import Optional
 # ═══════════════════════════════════════════════════════════
 
 PRICING: dict[str, dict[str, float]] = {
+    # o3 5.5
+    "o3-5.5-instant": {"input": 3.00,  "output": 12.00},
+    "o3-5.5-thinking": {"input": 10.00, "output": 40.00},
+    # o3 5.4
+    "o3-5.4-instant": {"input": 3.00,  "output": 12.00},
+    "o3-5.4-thinking": {"input": 10.00, "output": 40.00},
+    # GPT family
+    "o4-mini":       {"input": 1.10,  "output": 4.40},
     "gpt-4o":        {"input": 2.50,  "output": 10.00},
     "gpt-4o-mini":   {"input": 0.15,  "output": 0.60},
-    "o3":            {"input": 10.00, "output": 40.00},
-    "o4-mini":       {"input": 1.10,  "output": 4.40},
     "gpt-4.1":       {"input": 2.00,  "output": 8.00},
-    "gpt-4":         {"input": 30.00, "output": 60.00},
 }
 
 

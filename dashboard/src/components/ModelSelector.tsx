@@ -1,20 +1,24 @@
 "use client";
 
 import { theme, cn } from "@/lib/theme";
+import { Cpu, Check, Zap, Rocket, Brain, Sparkles } from "lucide-react";
 import { Card, Stat } from "@/components/ui/Card";
 
 interface ModelInfo {
   id: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const MODELS: ModelInfo[] = [
-  { id: "gpt-4o", label: "GPT-4o", icon: "🧠" },
-  { id: "gpt-4o-mini", label: "GPT-4o Mini", icon: "⚡" },
-  { id: "o3", label: "o3", icon: "🔮" },
-  { id: "o4-mini", label: "o4-mini", icon: "💎" },
-  { id: "gpt-4.1", label: "GPT-4.1", icon: "🚀" },
+  { id: "o3-5.5-thinking", label: "o3 5.5 Thinking", icon: <Brain className="w-4 h-4 text-purple-400" /> },
+  { id: "o3-5.5-instant", label: "o3 5.5 Instant", icon: <Zap className="w-4 h-4 text-yellow-400" /> },
+  { id: "o3-5.4-thinking", label: "o3 5.4 Thinking", icon: <Brain className="w-4 h-4 text-purple-300" /> },
+  { id: "o3-5.4-instant", label: "o3 5.4 Instant", icon: <Zap className="w-4 h-4 text-yellow-300" /> },
+  { id: "o4-mini", label: "o4-mini", icon: <Cpu className="w-4 h-4 text-cyan-400" /> },
+  { id: "gpt-4.1", label: "GPT-4.1", icon: <Rocket className="w-4 h-4 text-orange-400" /> },
+  { id: "gpt-4o", label: "GPT-4o", icon: <Sparkles className="w-4 h-4 text-green-400" /> },
+  { id: "gpt-4o-mini", label: "GPT-4o Mini", icon: <Zap className="w-4 h-4 text-green-300" /> },
 ];
 
 interface ModelSelectorProps {
@@ -24,7 +28,7 @@ interface ModelSelectorProps {
 
 export function ModelSelector({ current, onChange }: ModelSelectorProps) {
   return (
-    <Card title="🤖 Modelo Activo">
+    <Card title={<><Cpu className="w-5 h-5 text-yellow-400" /><span>Modelo Activo</span></>}>
       <div className="space-y-1">
         {MODELS.map((m) => (
           <button
@@ -37,9 +41,9 @@ export function ModelSelector({ current, onChange }: ModelSelectorProps) {
                 : "text-[#8b949e] hover:text-[#c9d1d9] hover:bg-[#30363d]/30"
             )}
           >
-            <span className="text-base">{m.icon}</span>
+            {m.icon}
             <span>{m.label}</span>
-            {current === m.id && <span className="ml-auto text-xs text-[#7ee787]">✓</span>}
+            {current === m.id && <Check className="w-4 h-4 ml-auto text-green-400" />}
           </button>
         ))}
       </div>

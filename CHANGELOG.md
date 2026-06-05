@@ -246,6 +246,50 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [3.7.0] — 2026-06-05
+
+### Changed — Modelos simplificados: Instant + Thinking
+
+- **o3 5.5 Instant + Thinking**: solo 2 variantes por versión.
+- **o3 5.4 Instant + Thinking**: misma estructura.
+- Lucide React en ModelSelector: `Brain` (Thinking), `Zap` (Instant).
+- `server.py`, `css_selectors.py`, `cost_tracker.py`, `ModelSelector`, `ChatBox` sincronizados.
+
+---
+
+## [3.6.0] — 2026-06-05
+
+### Changed — Lucide React icons
+
+- **Emojis reemplazados por Lucide React** en todos los componentes.
+- `Navbar`: `Brain`, `Circle` con color dinámico por estado.
+- `HealthCard`: `Heart`, `ShieldCheck`, `ShieldAlert`, `ShieldX`, `Check`, `X`, `AlertTriangle`.
+- `UsageCard`: `BarChart3`, `DollarSign`.
+- `ConversationsList`: `MessagesSquare`, `ExternalLink`.
+- `QueuePanel`: `ListOrdered`, `CheckCircle`, `AlertCircle`.
+- `ModelSelector`: `Cpu`, `Check`.
+- `ChatBox`: `Send`, `Loader2` (spinner animado).
+- `ErrorLog`: `AlertTriangle`.
+- `ui/Card`: `title` ahora acepta `ReactNode` (compatible con iconos).
+- `ui/Stat`: `value` ahora acepta `ReactNode` (compatible con iconos).
+
+---
+
+## [3.6.0] — 2026-06-05
+
+### Added — Nuevos modelos o3 + thinking_effort
+
+- **o3 5.2, 5.3, 5.4, 5.5**: generación actual de modelos o3.
+- **o3 Instant**: modo rápido, menor costo.
+- **o3 Pro**: modo avanzado, razonamiento profundo.
+- `thinking_effort` en `ChatCompletionRequest`: `low`, `medium`, `high`.
+- Precios actualizados en `cost_tracker.py` para todos los modelos.
+- `css_selectors.py`: fallbacks de selector para nuevos modelos.
+- `server.py`: `GET /v1/models` incluye los 11 modelos.
+- `ModelSelector` + `ChatBox`: UI con los nuevos modelos.
+
+---
+
 ## [3.5.0] — 2026-06-05
 
 ### Added — Dashboard full componentizado

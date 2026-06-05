@@ -66,6 +66,8 @@ class ChatCompletionRequest(BaseModel):
     tools: Optional[List[dict]] = None
     tool_choice: Optional[Union[str, dict]] = None
     parallel_tool_calls: Optional[bool] = None
+    # ── o3 / o4-mini: nivel de razonamiento ──
+    thinking_effort: Optional[Literal["low", "medium", "high"]] = None
 
 
 # ── Response Models ───────────────────────────────────────

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { MessagesSquare, ExternalLink } from "lucide-react";
 import { theme, cn } from "@/lib/theme";
 import { Card, Loading } from "@/components/ui/Card";
 import type { ConversationInfo } from "@/types/api";
@@ -20,7 +21,7 @@ export function ConversationsList() {
   }, []);
 
   return (
-    <Card title="💬 Conversaciones">
+    <Card title={<><MessagesSquare className="w-5 h-5 text-purple-400" /><span>Conversaciones</span></>}>
       {convs.length === 0 ? (
         <Loading />
       ) : (

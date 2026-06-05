@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ListOrdered, CheckCircle, AlertCircle } from "lucide-react";
 import { theme, cn } from "@/lib/theme";
 import { Card, Stat } from "@/components/ui/Card";
 import type { QueueStats } from "@/types/api";
@@ -18,7 +19,7 @@ export function QueuePanel() {
   }, []);
 
   return (
-    <Card title="📋 Cola de Requests">
+    <Card title={<><ListOrdered className="w-5 h-5 text-orange-400" /><span>Cola de Requests</span></>}>
       <Stat label="En cola" value={stats.pending.toString()} />
       <Stat label="Procesados" value={stats.processed.toLocaleString()} />
       <Stat label="Rechazados" value={stats.rejected.toLocaleString()} />
@@ -30,7 +31,7 @@ export function QueuePanel() {
           stats.pending < 5 ? "bg-[#d29922]/20 text-[#d29922]" :
           "bg-[#da3633]/20 text-[#f85149]"
         )}>
-          {stats.pending === 0 ? "✅ Libre" : stats.pending < 5 ? "⚠️ Ocupada" : "🔴 Saturada"}
+          {stats.pending === 0 ? <><CheckCircle className="w-3 h-3" /> Libre</> : stats.pending < 5 ? <><AlertCircle className="w-3 h-3" /> Ocupada</> : <><AlertCircle className="w-3 h-3" /> Saturada</>}
         </span>
       </div>
     </Card>

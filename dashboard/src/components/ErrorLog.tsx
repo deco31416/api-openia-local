@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { theme } from "@/lib/theme";
 import { Card } from "@/components/ui/Card";
 
@@ -45,7 +46,7 @@ export function ErrorLog() {
   }, []);
 
   return (
-    <Card title="⚠️ Errores Recientes">
+    <Card title={<><AlertTriangle className="w-5 h-5 text-red-400" /><span>Errores Recientes</span></>}>
       {errors.length === 0 ? (
         <p className={theme.colors.textMuted}>Sin errores</p>
       ) : (

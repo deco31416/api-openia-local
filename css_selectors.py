@@ -64,12 +64,17 @@ SELECTORS: dict[str, str] = {
 
 # Modelos que se pueden seleccionar con nombres alternativos
 MODEL_FALLBACKS: dict[str, list[str]] = {
+    # o3 5.5
+    "o3-5.5-instant": ["o3 5.5 instant", "O3 5.5 Instant"],
+    "o3-5.5-thinking": ["o3 5.5 thinking", "O3 5.5 Thinking"],
+    # o3 5.4
+    "o3-5.4-instant": ["o3 5.4 instant", "O3 5.4 Instant"],
+    "o3-5.4-thinking": ["o3 5.4 thinking", "O3 5.4 Thinking"],
+    # GPT family
+    "o4-mini": ["o4-mini", "O4-mini", "o4 mini", "O4 Mini"],
     "gpt-4o": ["GPT-4o", "GPT-4", "gpt-4", "4o"],
     "gpt-4o-mini": ["GPT-4o mini", "GPT-4o Mini", "gpt-4-mini", "4o-mini"],
-    "o3": ["o3", "O3", "OpenAI o3"],
-    "o4-mini": ["o4-mini", "O4-mini", "o4 mini", "O4 Mini"],
     "gpt-4.1": ["GPT-4.1", "gpt-4.1", "4.1"],
-    "gpt-4": ["GPT-4", "gpt-4", "4"],
 }
 
 
