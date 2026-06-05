@@ -1,0 +1,203 @@
+# ChatGPT Web Bridge — .gitignore
+
+# © 2024-2026 deco31416.com
+
+# Local-first experimental bridge powered by FastAPI + Playwright
+
+# -----------------------------------------------------------------------------
+
+# Python
+
+# -----------------------------------------------------------------------------
+
+**pycache**/
+*.py[cod]
+*$py.class
+*.so
+
+# Python build artifacts
+
+build/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+*.egg
+MANIFEST
+
+# Python packaging
+
+pip-wheel-metadata/
+*.whl
+
+# Virtual environments
+
+.venv/
+venv/
+env/
+ENV/
+.virtualenv/
+
+# Python tooling caches
+
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# -----------------------------------------------------------------------------
+
+# Environment variables and secrets
+
+# -----------------------------------------------------------------------------
+
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Local credentials / tokens / private config
+
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.secret
+secrets/
+credentials/
+private/
+
+# -----------------------------------------------------------------------------
+
+# Playwright / Browser automation
+
+# -----------------------------------------------------------------------------
+
+# Playwright browser binaries/cache
+
+playwright-report/
+test-results/
+
+# Persistent browser profiles may contain cookies, sessions, and auth data.
+
+# Never commit authenticated ChatGPT browser sessions.
+
+user_data/
+user-data/
+browser_data/
+browser-data/
+playwright-profile/
+.playwright/
+.chromium/
+chrome-profile/
+
+# Screenshots, traces, and videos generated during debugging
+
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.webm
+*.zip
+
+# Keep committed project assets if needed
+
+!assets/
+!assets/**
+!docs/assets/
+!docs/assets/**
+
+# -----------------------------------------------------------------------------
+
+# Logs and runtime files
+
+# -----------------------------------------------------------------------------
+
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Runtime databases / local state
+
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# -----------------------------------------------------------------------------
+
+# FastAPI / local server runtime
+
+# -----------------------------------------------------------------------------
+
+.uvicorn/
+gunicorn.pid
+
+# -----------------------------------------------------------------------------
+
+# IDE / Editors
+
+# -----------------------------------------------------------------------------
+
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+
+# -----------------------------------------------------------------------------
+
+# Operating system files
+
+# -----------------------------------------------------------------------------
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# -----------------------------------------------------------------------------
+
+# Node / frontend tooling, if added later
+
+# -----------------------------------------------------------------------------
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.next/
+out/
+dist-node/
+
+# -----------------------------------------------------------------------------
+
+# Documentation build artifacts
+
+# -----------------------------------------------------------------------------
+
+site/
+docs/_build/
+mkdocs-material/
