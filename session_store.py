@@ -34,8 +34,9 @@ class SessionStore:
 
     # ── CRUD ─────────────────────────────────────────────
 
-    def save(self, conversation_id: str, model: str, prompt: str):
-        """Guarda o actualiza una conversación."""
+    def save(self, conversation_id: str, model: str, prompt: str,
+             prompt_tokens: int = 0, completion_tokens: int = 0):
+        """Guarda o actualiza una conversación con conteo de tokens."""
         now = int(time.time())
         entry = {
             "conversation_id": conversation_id,
@@ -43,11 +44,19 @@ class SessionStore:
             "url": f"https://chatgpt.com/c/{conversation_id}",
             "last_used_at": now,
             "summary": prompt[:80].replace("\n", " "),
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens,
         }
-        if conversation_id not in self._data:
-            entry["created_at"] = now
+        if conversation_id in self._data:
+            # Acumular tokens del chat existente
+            prev = self._data[conversation_id]
+            entry["prompt_tokens"] = prev.get("prompt_tokens", 0) + prompt_tokens
+            entry["completion_tokens"] = prev.get("completion_tokens", 0) + completion_tokens
+            entry["total_tokens"] = entry["prompt_tokens"] + entry["completion_tokens"]
+            entry["created_at"] = prev.get("created_at", now)
         else:
-            entry["created_at"] = self._data[conversation_id].get("created_at", now)
+            entry["created_at"] = now
 
         self._data[conversation_id] = entry
         self._flush()

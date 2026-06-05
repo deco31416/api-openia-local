@@ -111,11 +111,8 @@ class ChatGPTBridge:
         generated = await self._images.extract_generated()
         conv_id = await self._prompter.get_conversation_id()
 
-        # Persistir conversación para que sobreviva a reinicios
         if conv_id:
-            store = get_store()
-            store.save(conv_id, actual, text)
-            print(f"[Bridge] 💾 Guardado chat: {conv_id[:8]}...")
+            print(f"[Bridge] 💾 Chat activo: {conv_id[:8]}...")
 
         return response, actual, generated, conv_id
 

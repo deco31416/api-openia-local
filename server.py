@@ -35,7 +35,7 @@ from chatgpt_bridge import ChatGPTBridge
 from image_handler import ImageHandler
 from token_counter import count_tokens
 from session_store import get_store
-from cost_tracker import get_tracker
+from cost_tracker import get_tracker, get_price
 
 
 # ═══════════════════════════════════════════════════════════
@@ -172,9 +172,14 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
     prompt_tk = count_tokens(prompt)
     completion_tk = count_tokens(response_content)
 
-    # Registrar en el cost tracker
+    # Registrar en el cost tracker (global)
     tracker = get_tracker()
     tracker.track(actual_model, prompt_tk, completion_tk)
+
+    # Registrar en el session store (por chat)
+    if conv_id:
+        store = get_store()
+        store.save(conv_id, actual_model, prompt, prompt_tk, completion_tk)
 
     payload = ChatCompletionResponse(
         id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
@@ -210,6 +215,30 @@ async def list_conversations():
     """Lista todas las conversaciones guardadas (sobrevive a reinicios)."""
     store = get_store()
     return {"object": "list", "data": store.list_all()}
+
+
+@app.get("/v1/conversations/{conversation_id}/usage")
+async def conversation_usage(conversation_id: str):
+    """Uso de tokens y costo estimado para una conversación específica."""
+    store = get_store()
+    entry = store.get(conversation_id)
+    if not entry:
+        raise HTTPException(404, f"Conversación '{conversation_id}' no encontrada")
+    pt = entry.get("prompt_tokens", 0)
+    ct = entry.get("completion_tokens", 0)
+    model = entry.get("model", "gpt-4o")
+    ci, co, total = get_price(model, pt, ct)
+    return {
+        "conversation_id": conversation_id,
+        "model": model,
+        "url": entry.get("url"),
+        "prompt_tokens": pt,
+        "completion_tokens": ct,
+        "total_tokens": pt + ct,
+        "cost_input_usd": ci,
+        "cost_output_usd": co,
+        "cost_total_usd": total,
+    }
 
 
 @app.delete("/v1/conversations/{conversation_id}")

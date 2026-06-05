@@ -8,6 +8,21 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.6.0] — 2026-06-04
+
+### Added
+
+- **Tokens por conversación**: `session_store.save()` ahora acumula `prompt_tokens` y `completion_tokens`.
+- `GET /v1/conversations/{id}/usage` — costo individual de cada chat.
+- `GET /v1/conversations` ahora incluye tokens y totales por chat.
+
+### Changed
+
+- El servidor ahora guarda tokens en el session store (el bridge solo trackea la URL).
+- `cost_tracker` + `session_store` trabajan juntos: tracker global + store por chat.
+
+---
+
 ## [1.5.0] — 2026-06-04
 
 ### Added
