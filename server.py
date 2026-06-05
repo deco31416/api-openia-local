@@ -35,6 +35,7 @@ from chatgpt_bridge import ChatGPTBridge
 from image_handler import ImageHandler
 from token_counter import count_tokens
 from session_store import get_store
+from cost_tracker import get_tracker
 
 
 # ═══════════════════════════════════════════════════════════
@@ -168,6 +169,13 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
         content[0]["text"] if isinstance(content, list) and content else ""
     )
 
+    prompt_tk = count_tokens(prompt)
+    completion_tk = count_tokens(response_content)
+
+    # Registrar en el cost tracker
+    tracker = get_tracker()
+    tracker.track(actual_model, prompt_tk, completion_tk)
+
     payload = ChatCompletionResponse(
         id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
         created=int(time.time()),
@@ -180,9 +188,9 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
             )
         ],
         usage=UsageInfo(
-            prompt_tokens=count_tokens(prompt),
-            completion_tokens=count_tokens(response_content),
-            total_tokens=count_tokens(prompt) + count_tokens(response_content),
+            prompt_tokens=prompt_tk,
+            completion_tokens=completion_tk,
+            total_tokens=prompt_tk + completion_tk,
         ),
     )
 
@@ -214,6 +222,18 @@ async def delete_conversation(conversation_id: str):
     store.delete(conversation_id)
     return {"deleted": True, "conversation_id": conversation_id}
 
+
+@app.get("/v1/usage")
+async def usage():
+    """Resumen de tokens acumulados y costo estimado en USD."""
+    return get_tracker().summary()
+
+
+@app.delete("/v1/usage")
+async def reset_usage():
+    """Reinicia el contador de tokens y costos."""
+    get_tracker().reset()
+    return {"reset": True}
 
 # ═══════════════════════════════════════════════════════════
 # Entry

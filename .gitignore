@@ -91,6 +91,7 @@ test-results/
 
 # Session store
 conversations.json
+usage.json
 
 # Never commit authenticated ChatGPT browser sessions.
 

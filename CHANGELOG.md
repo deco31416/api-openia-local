@@ -8,6 +8,23 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.5.0] — 2026-06-04
+
+### Added
+
+- **Cost Tracker**: `cost_tracker.py` acumula tokens y calcula costo en USD.
+- Precios reales por modelo: GPT-4o ($2.50/$10), o3 ($10/$40), GPT-4o-mini ($0.15/$0.60), etc.
+- `GET /v1/usage` — resumen de tokens acumulados + costo estimado.
+- `DELETE /v1/usage` — reinicia el contador.
+- `usage.json` persiste métricas entre reinicios.
+- Tracker se integra automáticamente en cada `POST /v1/chat/completions`.
+
+### Changed
+
+- `.gitignore` ahora excluye `usage.json`.
+
+---
+
 ## [1.4.0] — 2026-06-04
 
 ### Added
