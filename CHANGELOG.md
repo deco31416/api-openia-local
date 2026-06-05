@@ -8,6 +8,22 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [2.3.0] — 2026-06-04
+
+### Added
+
+- **Test suite**: 17 tests unitarios con `pytest` + `pytest-asyncio` + `pytest-cov`.
+- `tests/test_modules.py`: cobertura de token_counter, cost_tracker, error_codes, session_store, antiban, models, graceful_shutdown, css_selectors.
+- **Makefile**: `test`, `coverage`, `lint`, `typecheck`, `clean`, `run`, `run-headless`.
+- `pytest`, `pytest-asyncio`, `pytest-cov` en `requirements.txt`.
+
+### Changed
+
+- `graceful_shutdown.py`: `track()` ahora es `def` (no `async def`).
+- Tests arreglados para `session_store` ordenamiento y `antiban` timing.
+
+---
+
 ## [2.2.0] — 2026-06-04
 
 ### Added

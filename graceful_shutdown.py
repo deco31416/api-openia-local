@@ -35,7 +35,7 @@ class GracefulShutdown:
     def active_requests(self) -> int:
         return self._active_requests
 
-    async def track(self):
+    def track(self):
         """Context manager que trackea un request activo."""
 
         class _Tracker:
