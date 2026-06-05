@@ -1,4 +1,4 @@
-# 🧠 ChatGPT Web Bridge
+# ChatGPT Web Bridge
 
 <div align="center">
 
@@ -18,7 +18,7 @@ Built by **deco31416.com** for local experiments, agent workflows, IDE integrati
 
 ---
 
-## 📌 Overview
+## Overview
 
 **ChatGPT Web Bridge** is a local FastAPI server that exposes an OpenAI-compatible interface, including:
 
@@ -35,7 +35,7 @@ In simple terms:
 
 ---
 
-## ⚠️ Important Notice
+## Important Notice
 
 This project is **experimental software**.
 
@@ -53,7 +53,7 @@ It is **not recommended** for production, public deployment, resale as a hosted 
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 * [Overview](#-overview)
 * [Important Notice](#️-important-notice)
@@ -73,7 +73,7 @@ It is **not recommended** for production, public deployment, resale as a hosted 
 
 ---
 
-## 🎯 What It Does
+## What It Does
 
 **ChatGPT Web Bridge** allows local OpenAI-compatible clients to interact with ChatGPT Web through a browser session.
 
@@ -91,7 +91,7 @@ It is **not recommended** for production, public deployment, resale as a hosted 
 
 ---
 
-## 🧩 Why This Project Exists
+## Why This Project Exists
 
 Many tools, agents, IDE plugins, and local workflows expect an OpenAI-compatible API endpoint.
 
@@ -107,7 +107,7 @@ This project provides a local bridge so those tools can send requests to a brows
 
 ---
 
-## 🏗 Architecture
+## Architecture
 
 ```mermaid
 sequenceDiagram
@@ -127,7 +127,7 @@ sequenceDiagram
 
 ---
 
-## 🗂 Project Structure
+## Project Structure
 
 ```text
 idea-loca/
@@ -145,7 +145,7 @@ idea-loca/
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Requirements
 
@@ -376,7 +376,7 @@ OpenAI-compatible chat completions endpoint.
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### CLI Arguments
 
@@ -485,7 +485,7 @@ console.log(response.choices[0].message.content);
 
 ---
 
-## 🔒 Security Considerations
+## Security Considerations
 
 This bridge controls a real browser session. Treat it as sensitive software.
 
@@ -500,7 +500,7 @@ This bridge controls a real browser session. Treat it as sensitive software.
 
 ---
 
-## 🚫 Production Warning
+## Production Warning
 
 Do **not** deploy this as a public API service.
 
@@ -549,7 +549,7 @@ curl -s http://localhost:9090/v1/chat/completions \
 
 ---
 
-## 🧭 Roadmap
+## Roadmap
 
 Planned improvements may include:
 
@@ -564,13 +564,13 @@ Planned improvements may include:
 
 ---
 
-## 📄 Changelog
+## Changelog
 
 See [`CHANGELOG.md`](./CHANGELOG.md) for version history.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome.
 
@@ -586,7 +586,7 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for more details.
 
 ---
 
-## 📜 License
+## License
 
 MIT © **deco31416.com**
 See [`LICENSE`](./LICENSE) for the full license text.
@@ -603,7 +603,7 @@ The MIT license allows use, modification, distribution, and sublicensing of the 
 
 <div align="center">
 
-**Made with 🧠 by deco31416.com**
+**Made with ❤️ by deco31416.com**
 
 <sub>Experimental local bridge for ideas locas que funcionan.</sub>
 

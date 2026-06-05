@@ -33,6 +33,8 @@ from models import (
 )
 from chatgpt_bridge import ChatGPTBridge
 from image_handler import ImageHandler
+from token_counter import count_tokens
+from session_store import get_store
 
 
 # ═══════════════════════════════════════════════════════════
@@ -92,10 +94,6 @@ app = FastAPI(title="ChatGPT Web Bridge", version="1.1.0", lifespan=lifespan)
 # ═══════════════════════════════════════════════════════════
 # Helpers
 # ═══════════════════════════════════════════════════════════
-
-def _est_tokens(text: str) -> int:
-    return max(1, len(text) // 4)
-
 
 def _last_user_text(messages: list) -> str:
     """Extrae el texto del último mensaje user (incluso si es multimodal)."""
@@ -182,9 +180,9 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
             )
         ],
         usage=UsageInfo(
-            prompt_tokens=_est_tokens(prompt),
-            completion_tokens=_est_tokens(response_content),
-            total_tokens=_est_tokens(prompt) + _est_tokens(response_content),
+            prompt_tokens=count_tokens(prompt),
+            completion_tokens=count_tokens(response_content),
+            total_tokens=count_tokens(prompt) + count_tokens(response_content),
         ),
     )
 
@@ -193,6 +191,28 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
         resp.headers["X-Conversation-ID"] = conv_id
         resp.headers["X-Conversation-URL"] = f"https://chatgpt.com/c/{conv_id}"
     return resp
+
+
+# ═══════════════════════════════════════════════════════════
+# Conversaciones (session store)
+# ═══════════════════════════════════════════════════════════
+
+@app.get("/v1/conversations")
+async def list_conversations():
+    """Lista todas las conversaciones guardadas (sobrevive a reinicios)."""
+    store = get_store()
+    return {"object": "list", "data": store.list_all()}
+
+
+@app.delete("/v1/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: str):
+    """Elimina una conversación del store."""
+    store = get_store()
+    entry = store.get(conversation_id)
+    if not entry:
+        raise HTTPException(404, f"Conversación '{conversation_id}' no encontrada")
+    store.delete(conversation_id)
+    return {"deleted": True, "conversation_id": conversation_id}
 
 
 # ═══════════════════════════════════════════════════════════

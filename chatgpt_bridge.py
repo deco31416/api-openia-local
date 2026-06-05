@@ -11,6 +11,7 @@ from auth import AuthManager
 from prompter import Prompter
 from model_manager import ModelManager
 from image_handler import ImageHandler
+from session_store import get_store
 
 
 class ChatGPTBridge:
@@ -109,6 +110,12 @@ class ChatGPTBridge:
         response = await self._prompter.send(text)
         generated = await self._images.extract_generated()
         conv_id = await self._prompter.get_conversation_id()
+
+        # Persistir conversación para que sobreviva a reinicios
+        if conv_id:
+            store = get_store()
+            store.save(conv_id, actual, text)
+            print(f"[Bridge] 💾 Guardado chat: {conv_id[:8]}...")
 
         return response, actual, generated, conv_id
 

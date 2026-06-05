@@ -8,6 +8,38 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.4.0] — 2026-06-04
+
+### Added
+
+- **Session Store**: `session_store.py` persiste conversaciones en `conversations.json`.
+- `GET /v1/conversations` — lista todos los chats guardados (sobrevive a reinicios).
+- `DELETE /v1/conversations/{id}` — elimina un chat del store.
+- Auto-guardado: cada `send()` persiste `conversation_id` + modelo + resumen.
+- `goto_conversation()` solo navega si no estás ya en ese chat.
+
+### Changed
+
+- `.gitignore` ahora excluye `conversations.json` (datos locales del usuario).
+
+---
+
+## [1.3.0] — 2026-06-04
+
+### Added
+
+- **tiktoken** para conteo REAL de tokens (mismo tokenizer `cl100k_base` de OpenAI).
+- `token_counter.py`: `count_tokens()` con fallback automático a `len/4`.
+
+### Changed
+
+- **Velocidad optimizada**: `Prompter` usa `fill()` en lugar de `type(delay=10)`.
+- Polling reducido de 800ms a 300ms para detección de fin de respuesta.
+- `goto_conversation()` ahora detecta si ya estás en el chat y no navega.
+- Waits reducidos: `asyncio.sleep(2)` → `0.5`, `sleep(0.3)` → 0.
+
+---
+
 ## [1.2.0] — 2026-06-04
 
 ### Added
