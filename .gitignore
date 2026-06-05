@@ -94,6 +94,22 @@ conversations.json
 usage.json
 session.json
 
+# Agent personal knowledge (cada dev tiene el suyo)
+agent/knowledge/*
+agent/skills/*
+agent/memory/conversations/*
+agent/memory/summaries/*
+agent/memory/summary.json
+
+# Pero mantener los ejemplos
+!agent/knowledge/proyecto.md
+!agent/knowledge/notas.md
+!agent/knowledge/errores-comunes.md
+!agent/skills/default.md
+!agent/skills/code-review.md
+!agent/skills/experto-python.md
+!agent/skills/explicar-a-ninos.md
+
 # Never commit authenticated ChatGPT browser sessions.
 
 user_data/

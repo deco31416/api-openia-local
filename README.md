@@ -33,6 +33,8 @@ In simple terms:
 > Your local tools talk to this server as if it were an OpenAI API.
 > This server opens ChatGPT Web in a browser, sends the message, reads the answer, and returns it in OpenAI-compatible JSON format.
 
+> *"El sistema me conoce, aprende conmigo y me ayuda a no repetirme. Mi experiencia queda encapsulada en archivos que solo yo poseo. Si cambio de máquina, me llevo mi carpeta y listo. El repo solo tiene la semilla; el árbol crece en mi jardín."*
+
 ---
 
 ## Important Notice

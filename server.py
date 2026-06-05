@@ -247,11 +247,27 @@ async def agent_chat(req: ChatCompletionRequest, request: Request):
         {"role": "assistant", "content": text},
     ], tags=tags)
 
+    # Comando !save: guardar skill o conocimiento desde el chat
+    extra_info: dict = {}
+    if user_text.strip().lower().startswith("!save"):
+        extra_info = _handle_save_command(user_text, text)
+
+    # Detectar auto-aprendizaje
+    suggestion = _agent.detect_learning([
+        {"role": "user", "content": user_text},
+        {"role": "assistant", "content": text},
+    ])
+    if suggestion and not extra_info:
+        extra_info["suggestion"] = suggestion
+
     resp = JSONResponse(content=ChatCompletionResponse(
         id=f"chatcmpl-{uuid.uuid4().hex[:12]}",
         created=int(time.time()),
         model=actual_model,
-        choices=[ChatChoice(index=0, message=ChatMessage(role="assistant", content=text), finish_reason="stop")],
+        choices=[ChatChoice(index=0, message=ChatMessage(
+            role="assistant",
+            content=text + _format_extra(extra_info)
+        ), finish_reason="stop")],
         usage=UsageInfo(prompt_tokens=count_tokens(enriched), completion_tokens=count_tokens(text), total_tokens=count_tokens(enriched) + count_tokens(text)),
     ).model_dump())
     if conv_id:
@@ -275,8 +291,52 @@ async def agent_forget(conv_id: str):
 @app.post("/v1/agent/reload")
 async def agent_reload():
     """Recarga conocimiento y skills en caliente (hot-reload)."""
-    _agent.reload_knowledge()
+    _agent.rag.reload()
     return {"reloaded": True}
+
+
+# ── Helpers del agente ───────────────────────────────────
+
+def _handle_save_command(user_text: str, response_text: str) -> dict:
+    """
+    Procesa comandos !save del usuario.
+    Formatos: !save skill <nombre> | !save knowledge <nombre>
+    El contenido se toma de la respuesta del asistente.
+    """
+    info: dict = {}
+    text_lower = user_text.strip().lower()
+    try:
+        if text_lower.startswith("!save skill "):
+            name = user_text.strip()[12:].strip().split("\n")[0]
+            path = _agent.save_skill(name, response_text)
+            info["saved_skill"] = str(path)
+        elif text_lower.startswith("!save knowledge "):
+            name = user_text.strip()[17:].strip().split("\n")[0]
+            path = _agent.save_knowledge(name, response_text)
+            info["saved_knowledge"] = str(path)
+        elif text_lower.startswith("!save summary"):
+            conv_id = f"summary-{uuid.uuid4().hex[:8]}"
+            path = _agent.save_summary(conv_id, response_text)
+            info["saved_summary"] = str(path)
+    except Exception as e:
+        info["save_error"] = str(e)
+    return info
+
+
+def _format_extra(extra: dict) -> str:
+    """Formatea sugerencias o confirmaciones como texto adicional."""
+    parts = []
+    if extra.get("saved_skill"):
+        parts.append(f"\n\n✅ Skill guardado: `{extra['saved_skill']}`")
+    if extra.get("saved_knowledge"):
+        parts.append(f"\n\n📝 Conocimiento guardado: `{extra['saved_knowledge']}`")
+    if extra.get("saved_summary"):
+        parts.append(f"\n\n📋 Resumen guardado: `{extra['saved_summary']}`")
+    if extra.get("suggestion"):
+        parts.append(f"\n\n💡 {extra['suggestion']}")
+    if extra.get("save_error"):
+        parts.append(f"\n\n⚠️ Error: {extra['save_error']}")
+    return "".join(parts)
 
 
 # ═══════════════════════════════════════════════════════════

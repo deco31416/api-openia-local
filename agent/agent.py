@@ -1,5 +1,5 @@
 """
-SimpleAgent — Orquestador que une RAG + Skills + Memoria + Bridge.
+SimpleAgent — Orquestador que une RAG + Skills + Memoria + Bridge + Writer.
 Menos de 200 líneas, cero dependencias pesadas.
 """
 
@@ -8,18 +8,18 @@ from typing import Optional
 
 from agent.rag import RAGEngine
 from agent.memory_store import MemoryStore
+from agent.knowledge_writer import KnowledgeWriter
 
 
 class SimpleAgent:
     """
-    Agente que enriquece prompts con conocimiento, skills y memoria.
+    Agente que enriquece prompts Y genera conocimiento automáticamente.
 
     Uso:
         agent = SimpleAgent()
-        enriched_prompt = agent.build_prompt("¿Cómo hago paella?", skill="default")
-        response = await bridge.send(enriched_prompt, model="gpt-4o")
-        agent.remember("conv-001", [{"role":"user","content":"..."},
-                                    {"role":"assistant","content":response}])
+        enriched = agent.build_prompt("¿Cómo hago paella?", skill="default")
+        agent.save_skill("code-review-ts", "## TypeScript patterns...")
+        suggestion = agent.detect_learning(recent_msgs)  # auto-sugerencia
     """
 
     def __init__(
@@ -27,105 +27,91 @@ class SimpleAgent:
         knowledge_dir: str = "agent/knowledge",
         skills_dir: str = "agent/skills",
         memory_dir: str = "agent/memory",
-        use_embeddings: bool = False,
     ):
-        self.knowledge = RAGEngine(knowledge_dir)
+        self.rag = RAGEngine(knowledge_dir)
         self.skills = self._load_skills(skills_dir)
         self.memory = MemoryStore(memory_dir)
-
-        if use_embeddings:
-            ok = self.knowledge.enable_embeddings()
-            print(f"[Agent] 🧠 Embeddings: {'OK' if ok else 'fallback a keywords'}")
+        self.writer = KnowledgeWriter(skills_dir, knowledge_dir)
+        self._skills_dir = skills_dir
+        self._knowledge_dir = knowledge_dir
 
     # ── Prompt Building ──────────────────────────────────
 
-    def build_prompt(
-        self,
-        user_message: str,
-        skill: str = "default",
-        use_memory: bool = True,
-        max_context_chars: int = 2000,
-    ) -> str:
-        """
-        Construye un prompt enriquecido con:
-        1. System prompt de la skill
-        2. Fragmentos relevantes de knowledge/
-        3. Contexto de conversaciones pasadas (memory)
-        4. El mensaje del usuario
-        """
+    def build_prompt(self, user_message: str, skill: str = "default",
+                     use_memory: bool = True, max_context_chars: int = 2000) -> str:
         parts: list[str] = []
-
-        # 1. Skill (system prompt)
         system = self.skills.get(skill, "")
         if system:
             parts.append(f"[SYSTEM]\n{system}")
-
-        # 2. Conocimiento (RAG)
-        fragments = self.knowledge.search(user_message, top_k=3)
+        fragments = self.rag.search(user_message, top_k=3)
         if fragments:
-            context = "\n---\n".join(fragments)
-            if len(context) > max_context_chars:
-                context = context[:max_context_chars] + "\n... (truncado)"
-            parts.append(f"[CONTEXT]\n{context}")
-
-        # 3. Memoria (historial relevante)
+            ctx = "\n---\n".join(fragments)
+            if len(ctx) > max_context_chars:
+                ctx = ctx[:max_context_chars] + "\n... (truncado)"
+            parts.append(f"[CONTEXT]\n{ctx}")
         if use_memory:
             history = self.memory.search(user_message, top_k=2)
             if history:
-                hist_texts: list[str] = []
+                htexts = []
                 for conv in history:
-                    msgs = conv.get("messages", [])[-4:]  # últimos 4 mensajes
-                    for msg in msgs:
+                    for msg in conv.get("messages", [])[-4:]:
                         role = msg.get("role", "user")
                         content = msg.get("content", "")
                         if isinstance(content, str) and content.strip():
-                            hist_texts.append(f"[{role}] {content[:200]}")
-                if hist_texts:
-                    parts.append(f"[HISTORY]\n" + "\n".join(hist_texts))
-
-        # 4. Mensaje del usuario
+                            htexts.append(f"[{role}] {content[:200]}")
+                if htexts:
+                    parts.append(f"[HISTORY]\n" + "\n".join(htexts))
         parts.append(f"[USER]\n{user_message}")
-
         return "\n\n".join(parts)
 
-    # ── Memory Management ────────────────────────────────
+    # ── Memory ───────────────────────────────────────────
 
     def remember(self, conv_id: str, messages: list[dict], tags: list[str] | None = None):
-        """Guarda una conversación en memoria persistente."""
         self.memory.save(conv_id, messages, tags=tags)
 
     def recall(self, conv_id: str) -> Optional[dict]:
-        """Recupera una conversación por ID."""
         return self.memory.load(conv_id)
 
     def forget(self, conv_id: str):
-        """Elimina una conversación de la memoria."""
         self.memory.delete(conv_id)
 
-    def search_memory(self, query: str) -> list[dict]:
-        """Busca conversaciones pasadas relevantes."""
-        return self.memory.search(query)
+    # ── Knowledge Writing ────────────────────────────────
 
-    # ── Knowledge Management ─────────────────────────────
+    def save_skill(self, name: str, content: str) -> Path:
+        """Guarda un nuevo skill .md y lo recarga en caliente."""
+        path = self.writer.save_skill(name, content)
+        self.skills = self._load_skills(self._skills_dir)  # reload
+        return path
 
-    def reload_knowledge(self):
-        """Recarga archivos .md de knowledge/ (hot-reload)."""
-        self.knowledge.reload()
-        print("[Agent] 🔄 Conocimiento recargado")
+    def save_knowledge(self, name: str, content: str) -> Path:
+        """Guarda conocimiento .md y recarga RAG."""
+        path = self.writer.save_knowledge(name, content)
+        self.rag.reload()
+        return path
+
+    def save_summary(self, conv_id: str, content: str) -> Path:
+        """Guarda resumen de conversación."""
+        return self.writer.save_summary(conv_id, content)
+
+    def detect_learning(self, recent_messages: list[dict]) -> Optional[str]:
+        """
+        Detecta patrones de aprendizaje y devuelve sugerencia o None.
+        El caller decide si mostrar la sugerencia al usuario.
+        """
+        trigger = self.writer.detect_pattern(recent_messages)
+        if trigger:
+            return self.writer.build_suggestion(trigger)
+        return None
 
     # ── Internals ────────────────────────────────────────
 
     @staticmethod
     def _load_skills(skills_dir: str) -> dict[str, str]:
-        """Carga todos los archivos .md de skills/ en un diccionario."""
         skills: dict[str, str] = {}
         path = Path(skills_dir)
-        if not path.exists():
-            path.mkdir(parents=True, exist_ok=True)
+        path.mkdir(parents=True, exist_ok=True)
         for md_file in path.glob("*.md"):
-            name = md_file.stem  # nombre sin extensión
+            name = md_file.stem
             skills[name] = md_file.read_text("utf-8")
         print(f"[Agent] 🎯 {len(skills)} skills cargadas de {path}")
-        if not skills:
-            print("[Agent] ⚠️ No se encontraron skills. Crea .md en agent/skills/")
         return skills

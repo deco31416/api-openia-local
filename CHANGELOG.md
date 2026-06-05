@@ -7,7 +7,26 @@ This project follows the principles of [Keep a Changelog](https://keepachangelog
 Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
+## [3.2.0] — 2026-06-04
 
+### Added — Knowledge Writer (el agente que también escribe)
+
+- **`agent/knowledge_writer.py`**: generación de archivos `.md` manual y automática.
+  - `save_skill()` / `save_knowledge()` / `save_summary()`.
+  - `detect_pattern()`: detecta correcciones recurrentes y sugiere guardarlas.
+- **Comandos `!save`**: `!save skill <nombre>`, `!save knowledge <nombre>`, `!save summary`.
+  - El contenido se toma de la respuesta del asistente.
+- **Auto-sugerencias**: después de cada respuesta, el agente detecta patrones y sugiere guardar.
+- **`.gitignore`**: excluye archivos personales en `agent/knowledge/`, `agent/skills/`, `agent/memory/`.
+  - Solo los 7 archivos de ejemplo se versionan.
+- **README**: añadida la frase filosófica del proyecto.
+
+### Changed
+
+- `agent.py` actualizado con `save_skill()`, `save_knowledge()`, `detect_learning()`.
+- `server.py` endpoint `/v1/agent/chat` procesa comandos `!save` + sugerencias.
+
+---
 ## [3.0.0] — 2026-06-04
 
 ### Added — Producción-Ready
