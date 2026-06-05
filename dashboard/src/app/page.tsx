@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/Navbar";
+import { Sidebar } from "@/components/Sidebar";
 import { HealthCard } from "@/components/HealthCard";
 import { UsageCard } from "@/components/UsageCard";
 import { ConversationsList } from "@/components/ConversationsList";
@@ -10,13 +11,22 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { ChatBox } from "@/components/ChatBox";
 import { ErrorLog } from "@/components/ErrorLog";
 import { theme, cn } from "@/lib/theme";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import type { HealthResponse } from "@/types/api";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9090";
 
 export default function DashboardPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
-  const [model, setModel] = useState("gpt-4o");
+  const [model, setModel] = useState("o3-5.5-thinking");
+  const [activeSection, setActiveSection] = useState("health");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  // Auto-collapse sidebar on mobile
+  useEffect(() => {
+    if (isMobile) setSidebarCollapsed(true);
+  }, [isMobile]);
 
   useEffect(() => {
     fetch(`${API_BASE}/health`).then((r) => r.json()).then(setHealth).catch(() => {});
@@ -45,19 +55,28 @@ export default function DashboardPage() {
         uptime={health?.uptime_seconds || 0}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          <HealthCard />
-          <UsageCard />
-          <QueuePanel />
-          <ModelSelector current={model} onChange={setModel} />
-          <ChatBox onSend={handleChat} />
-          <div className="flex flex-col gap-4">
-            <ConversationsList />
-            <ErrorLog />
+      <div className="flex flex-1">
+        <Sidebar
+          active={activeSection}
+          onSelect={setActiveSection}
+          collapsed={sidebarCollapsed}
+          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+
+        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div id="section-health" className={activeSection === "health" ? "" : "hidden"}><HealthCard /></div>
+            <div id="section-usage" className={activeSection === "usage" ? "" : "hidden"}><UsageCard /></div>
+            <div id="section-queue" className={activeSection === "queue" ? "" : "hidden"}><QueuePanel /></div>
+            <div id="section-model" className={activeSection === "model" ? "" : "hidden"}><ModelSelector current={model} onChange={setModel} /></div>
+            <div id="section-chat" className={activeSection === "chat" ? "" : "hidden"}><ChatBox onSend={handleChat} /></div>
+            <div id="section-conversations" className={activeSection === "conversations" ? "" : "hidden"}>
+              <ConversationsList />
+            </div>
+            <div id="section-errors" className={activeSection === "errors" ? "" : "hidden"}><ErrorLog /></div>
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       <footer className={cn(theme.colors.card, theme.colors.border, "border-t px-5 py-4 mt-auto")}>
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#8b949e]">
