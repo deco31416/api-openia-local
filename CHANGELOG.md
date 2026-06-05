@@ -246,6 +246,27 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [3.5.0] — 2026-06-05
+
+### Added — Dashboard full componentizado
+
+- **`Navbar.tsx`**: barra de navegación con estado, uptime y versión.
+- **`QueuePanel.tsx`**: cola de requests en tiempo real con indicador visual.
+- **`ModelSelector.tsx`**: selector de modelo (GPT-4o, o3, o4-mini, GPT-4.1).
+- **`ChatBox.tsx`**: enviar prompts desde el dashboard al bridge.
+- **`ErrorLog.tsx`**: últimos errores del bridge en tiempo real.
+- **`ui/Card.tsx`** + **`ui/Stat.tsx`** + **`ui/Loading.tsx`**: componentes UI reutilizables.
+- **`ui/index.ts`**: barrel exports para imports limpios.
+- **`page.tsx`** reescrito con todos los componentes integrados.
+
+### Changed
+
+- `HealthCard`, `UsageCard`, `ConversationsList`: refactorizados para usar `ui/Card` + `ui/Stat` + `ui/Loading`.
+- Todos los componentes usan `API_BASE` por variable de entorno.
+- `lib/api.ts` mantenido como helper tipado adicional.
+
+---
+
 ## [3.4.0] — 2026-06-05
 
 ### Added — Next.js TypeScript Dashboard

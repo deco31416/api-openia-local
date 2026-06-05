@@ -1,19 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
 import { theme, cn } from "@/lib/theme";
-import { Card, Loading } from "./UsageCard";
+import { Card, Loading } from "@/components/ui/Card";
 import type { ConversationInfo } from "@/types/api";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9090";
 
 export function ConversationsList() {
   const [convs, setConvs] = useState<ConversationInfo[]>([]);
 
   useEffect(() => {
-    api.conversations()
-      .then((d) => setConvs(d.data))
+    fetch(`${API_BASE}/v1/conversations`)
+      .then((r) => r.json())
+      .then((d) => setConvs(d.data || []))
       .catch(() => {});
-    const i = setInterval(() => api.conversations().then((d) => setConvs(d.data)).catch(() => {}), 20_000);
+    const i = setInterval(() => fetch(`${API_BASE}/v1/conversations`).then((r) => r.json()).then((d) => setConvs(d.data || [])).catch(() => {}), 20_000);
     return () => clearInterval(i);
   }, []);
 
@@ -22,9 +24,9 @@ export function ConversationsList() {
       {convs.length === 0 ? (
         <Loading />
       ) : (
-        <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-          {convs.slice(0, 15).map((c) => (
-            <div key={c.conversation_id} className={cn(theme.colors.border, "border rounded-lg p-3 text-sm")}>
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {convs.slice(0, 10).map((c) => (
+            <div key={c.conversation_id} className={cn(theme.colors.border, "border rounded-lg p-2.5 text-sm")}>
               <a
                 href={c.url}
                 target="_blank"
@@ -33,10 +35,9 @@ export function ConversationsList() {
               >
                 {c.summary || c.conversation_id.slice(0, 12)}
               </a>
-              <div className={cn(theme.colors.textMuted, "text-xs mt-1 flex gap-3")}>
+              <div className={cn(theme.colors.textMuted, "text-xs mt-1 flex gap-2")}>
                 <span>{c.model}</span>
                 <span>{(c.total_tokens || 0).toLocaleString()} tokens</span>
-                <span>{new Date((c.last_used_at || 0) * 1000).toLocaleDateString()}</span>
               </div>
             </div>
           ))}
