@@ -8,6 +8,28 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [3.0.0] — 2026-06-04
+
+### Added — Producción-Ready
+
+- **SSE Streaming real**: `sse_streamer.py` emite tokens con tiktoken via Server-Sent Events.
+  - `POST /v1/chat/completions` con `stream=True` devuelve `text/event-stream`.
+  - Delay configurable (30ms), chunk de 1 token, formato OpenAI ChatCompletionChunk.
+- **Watchdog**: `watchdog.py` monitorea salud de la página cada 30s, reintenta 3 fallos, reinicia automáticamente.
+- **Session Recovery**: `session_recovery.py` guarda/restaura cookies en `session.json`.
+  - Auto-save al apagar, auto-restore al arrancar.
+- **Dashboard web**: `dashboard.py` — HTML servido en `GET /dashboard`.
+  - Health, uso global, conversaciones, cola. Auto-refresh cada 10s.
+- **Config YAML**: `config.yaml` con todos los parámetros (server, queue, rate, antiban, streaming, watchdog).
+- **`session.json`** agregado a `.gitignore` (datos de sesión local).
+
+### Changed
+
+- `chat_handler.py`: soporta streaming con `stream_chat()`.
+- `server.py`: endpoint `/v1/chat/completions` acepta `stream=True`, watchdog + session recovery integrados.
+
+---
+
 ## [2.3.0] — 2026-06-04
 
 ### Added

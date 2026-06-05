@@ -24,13 +24,15 @@ from models import (
 from chatgpt_bridge import ChatGPTBridge
 from routes import router as v1_router
 from health_diagnostics import diagnose, set_start_time
-from chat_handler import process_chat
+from chat_handler import process_chat, stream_chat
 
-# v2.0 — Reliability modules
+# v2.0 — Reliability
 from queue_manager import RequestQueue, QueueFullError, QueueTimeoutError
 from rate_limiter import RateLimiter
 from error_codes import error_response
 from graceful_shutdown import GracefulShutdown, ShuttingDownError
+from watchdog import Watchdog
+from session_recovery import SessionRecovery
 
 
 # ═══════════════════════════════════════════════════════════
@@ -43,6 +45,8 @@ PORT = 9090
 QUEUE: RequestQueue = RequestQueue(max_concurrent=1, max_queue=10)
 LIMITER: RateLimiter = RateLimiter(rpm=10, burst=3)
 SHUTDOWN: GracefulShutdown = GracefulShutdown(timeout=30.0)
+WATCHDOG: Watchdog = None  # type: ignore
+SESSION_RECOVERY: SessionRecovery = None  # type: ignore
 
 AVAILABLE_MODELS = [
     ModelInfo(id="gpt-4o", created=1715367049, owned_by="chatgpt-web"),
@@ -62,17 +66,33 @@ _start_time: float = 0.0
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global BRIDGE
+    global BRIDGE, WATCHDOG, SESSION_RECOVERY
     import time as _time
     _start_time = _time.time()
     banner()
     BRIDGE = await ChatGPTBridge(headless=HEADLESS).start()
+
+    # Session recovery
+    page = BRIDGE._browser.page if hasattr(BRIDGE, '_browser') else None
+    SESSION_RECOVERY = SessionRecovery(BRIDGE._browser._context) if page else None
+
+    # Watchdog
+    if page:
+        async def _recover():
+            await page.reload(wait_until="domcontentloaded")
+        WATCHDOG = Watchdog(page, on_recovery=_recover)
+        await WATCHDOG.start()
+
     if not BRIDGE.is_authenticated:
         await _wait_for_login()
     SHUTDOWN.register_signals()
     print(f"\n✅ Bridge listo! API activa (cola:{QUEUE._max_queue} rpm:{LIMITER._rate*60:.0f}).\n")
     yield
     print("\n🛑 Apagando...")
+    if WATCHDOG:
+        await WATCHDOG.stop()
+    if SESSION_RECOVERY:
+        await SESSION_RECOVERY.save()
     await SHUTDOWN.wait_for_drain()
     await BRIDGE.stop()
     print("\n👋 Bridge cerrado.\n")
@@ -129,6 +149,14 @@ async def health():
     return diagnose(BRIDGE)
 
 
+@app.get("/dashboard")
+async def dashboard():
+    """Dashboard web mínimo — HTML con estado en tiempo real."""
+    from fastapi.responses import HTMLResponse
+    from dashboard import DASHBOARD_HTML
+    return HTMLResponse(content=DASHBOARD_HTML)
+
+
 @app.get("/v1/models", response_model=ModelsListResponse)
 async def list_models():
     return ModelsListResponse(data=AVAILABLE_MODELS)
@@ -141,6 +169,15 @@ async def chat_completions(req: ChatCompletionRequest, request: Request):
         code, body = error_response("SHUTTING_DOWN")
         return JSONResponse(content=body, status_code=code)
 
+    # Streaming mode
+    if req.stream:
+        try:
+            return await stream_chat(req, request, BRIDGE)
+        except Exception as e:
+            code, body = error_response("INTERNAL_ERROR", detail=str(e))
+            return JSONResponse(content=body, status_code=code)
+
+    # Non-streaming mode
     try:
         async with QUEUE:
             async with LIMITER:

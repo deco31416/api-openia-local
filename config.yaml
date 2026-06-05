@@ -1,0 +1,39 @@
+# Configuración del bridge
+# ChatGPT Web Bridge — deco31416.com
+
+server:
+  port: 9090
+  host: "0.0.0.0"
+  headless: true
+
+bridge:
+  chatgpt_url: "https://chatgpt.com/"
+  timeout: 120000
+  user_data_dir: ""  # dejar vacío = perfil temporal
+
+queue:
+  max_concurrent: 1
+  max_queue: 10
+
+rate_limit:
+  rpm: 10   # requests por minuto
+  burst: 3  # ráfaga máxima
+
+antiban:
+  enabled: true
+  wpm: 60           # palabras por minuto simuladas
+  min_think: 0.5    # pensar mínimo (segundos)
+  max_think: 3.0    # pensar máximo (segundos)
+
+streaming:
+  delay_ms: 30      # delay entre tokens (ms)
+  chunk_tokens: 1   # tokens por chunk
+
+watchdog:
+  enabled: true
+  check_interval: 30  # segundos entre checks
+  max_failures: 3     # fallos antes de reiniciar
+
+session:
+  persistence: true   # guardar cookies en disco
+  file: "session.json"

@@ -7,7 +7,7 @@ import uuid
 import time
 
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from models import (
     ChatCompletionRequest, ChatCompletionResponse,
@@ -19,6 +19,7 @@ from session_store import get_store
 from cost_tracker import get_tracker
 from error_codes import error_response
 from antiban import AntiBan
+from sse_streamer import Streamer
 
 # Anti-ban global (simula humano)
 _antiban = AntiBan(human_mode=True, wpm=60)
@@ -106,3 +107,50 @@ async def process_chat(req: ChatCompletionRequest, request: Request, bridge):
         resp.headers["X-Conversation-ID"] = conv_id
         resp.headers["X-Conversation-URL"] = f"https://chatgpt.com/c/{conv_id}"
     return resp
+
+
+async def stream_chat(req: ChatCompletionRequest, request: Request, bridge):
+    """
+    Versión streaming: emite tokens incrementalmente via SSE.
+    Divide la respuesta en chunks con tiktoken y delay artificial.
+    """
+    from sse_streamer import Streamer
+
+    msgs = [m.model_dump() for m in req.messages]
+    prompt = _last_user_text(msgs)
+    images = ImageHandler.extract_base64_from_messages(msgs)
+    conv_in = request.headers.get("X-Conversation-ID", "")
+
+    await _antiban.inter_request_pause()
+    await _antiban.thinking_pause()
+
+    try:
+        text, actual_model, gen_imgs, conv_id = await bridge.send(
+            text=prompt, model=req.model, images=images or None,
+            conversation_id=conv_in,
+        )
+    except Exception as e:
+        # Error en streaming: enviar como SSE error y cerrar
+        async def error_stream():
+            err = json.dumps({"error": {"code": "STREAM_ERROR", "message": str(e)}})
+            yield f"data: {err}\n\n"
+            yield "data: [DONE]\n\n"
+        return StreamingResponse(error_stream(), media_type="text/event-stream")
+
+    # Track tokens
+    prompt_tk = count_tokens(prompt)
+    completion_tk = count_tokens(text)
+    get_tracker().track(actual_model, prompt_tk, completion_tk)
+    if conv_id:
+        get_store().save(conv_id, actual_model, prompt, prompt_tk, completion_tk)
+
+    streamer = Streamer(delay_ms=30, chunk_tokens=1)
+    return StreamingResponse(
+        streamer.stream(text, actual_model),
+        media_type="text/event-stream",
+        headers={
+            "X-Conversation-ID": conv_id or "",
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )

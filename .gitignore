@@ -89,9 +89,10 @@ test-results/
 
 # Persistent browser profiles may contain cookies, sessions, and auth data.
 
-# Session store
+# Session persistence
 conversations.json
 usage.json
+session.json
 
 # Never commit authenticated ChatGPT browser sessions.
 
