@@ -1,13 +1,8 @@
 """
 ChatGPT Web Bridge — Servidor API compatible con OpenAI.
 
-Endpoints:
-    GET  /health                 → Estado del bridge
-    GET  /v1/models              → Modelos disponibles
-    POST /v1/chat/completions    → Chat (texto + imágenes, OpenAI SDK compatible)
-
 Uso:
-    python server.py --port 9090           # visible (login)
+    python server.py --port 9090           # visible
     python server.py --port 9090 --no-headless  # invisible
 """
 
@@ -30,6 +25,7 @@ from models import (
     ModelInfo,
     ModelsListResponse,
     HealthResponse,
+    ComponentStatus,
 )
 from chatgpt_bridge import ChatGPTBridge
 from image_handler import ImageHandler
@@ -37,6 +33,7 @@ from token_counter import count_tokens
 from session_store import get_store
 from cost_tracker import get_tracker
 from routes import router as v1_router
+from health_diagnostics import diagnose, set_start_time
 
 
 # ═══════════════════════════════════════════════════════════
@@ -60,9 +57,14 @@ AVAILABLE_MODELS = [
 # Lifecycle
 # ═══════════════════════════════════════════════════════════
 
+_start_time: float = 0.0
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global BRIDGE
+    import time as _time
+    _start_time = _time.time()
     banner()
     BRIDGE = await ChatGPTBridge(headless=HEADLESS).start()
     if not BRIDGE.is_authenticated:
@@ -90,7 +92,7 @@ async def _wait_for_login():
     # auth.ensure se llama dentro de bridge.send()
 
 
-app = FastAPI(title="ChatGPT Web Bridge", version="1.6.0", lifespan=lifespan)
+app = FastAPI(title="ChatGPT Web Bridge", version="1.8.0", lifespan=lifespan)
 app.include_router(v1_router)
 
 
@@ -119,10 +121,9 @@ def _last_user_text(messages: list) -> str:
 
 @app.get("/health", response_model=HealthResponse)
 async def health():
-    return HealthResponse(
-        status="ok",
-        authenticated=BRIDGE.is_authenticated if BRIDGE else False,
-    )
+    """Diagnóstico completo del bridge y sus componentes."""
+    set_start_time(_start_time)
+    return diagnose(BRIDGE)
 
 
 @app.get("/v1/models", response_model=ModelsListResponse)

@@ -8,6 +8,23 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [1.8.0] — 2026-06-04
+
+### Added
+
+- **ROADMAP.md** con pipeline de features v2.0 → v3.0.
+- **health_diagnostics.py**: diagnóstico por componente (bridge, browser, tiktoken, session store).
+- `ComponentStatus` model en `models.py` para reportes de estado estructurados.
+- `/health` ahora muestra `components[]`, `errors[]`, `uptime_seconds`, `version`.
+
+### Changed
+
+- `server.py` de 251 → 197 líneas (health extraído a `health_diagnostics.py`).
+- `models.py`: `HealthResponse` enriquecido con campos de diagnóstico.
+- README: link a ROADMAP.md, versión badge 1.8.0.
+
+---
+
 ## [1.7.0] — 2026-06-04
 
 ### Added

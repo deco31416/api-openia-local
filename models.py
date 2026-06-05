@@ -67,7 +67,16 @@ class ModelsListResponse(BaseModel):
 
 # ── Health ────────────────────────────────────────────────
 
+class ComponentStatus(BaseModel):
+    name: str
+    status: str  # "ok", "degraded", "error", "unknown"
+    detail: str = ""
+
 class HealthResponse(BaseModel):
-    status: str
+    status: str  # "healthy", "degraded", "unhealthy"
     authenticated: bool
     bridge: str = "chatgpt-web-bridge"
+    version: str = "1.7.0"
+    components: list[ComponentStatus] = []
+    errors: list[str] = []
+    uptime_seconds: float = 0.0
