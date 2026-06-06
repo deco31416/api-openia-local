@@ -105,6 +105,16 @@ async def agent_forget(conv_id: str):
     return {"deleted": True, "conversation_id": conv_id}
 
 
+@router.get("/memory/{conv_id}")
+async def agent_recall(conv_id: str):
+    """Recupera una conversación específica por ID."""
+    agent, _, _, _, _ = _get_agent()
+    conv = agent.recall(conv_id)
+    if not conv:
+        return JSONResponse(status_code=404, content={"error": {"code": "NOT_FOUND", "message": f"Conversación '{conv_id}' no encontrada"}})
+    return conv
+
+
 @router.post("/reload")
 async def agent_reload():
     agent, _, _, _, _ = _get_agent()
