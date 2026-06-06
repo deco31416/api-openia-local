@@ -119,7 +119,10 @@ class MemoryStore:
     def _load_conv(self, conv_id: str) -> Optional[dict]:
         filepath = self._conv_dir / f"{conv_id}.json"
         if filepath.exists():
-            return json.loads(filepath.read_text("utf-8"))
+            try:
+                return json.loads(filepath.read_text("utf-8"))
+            except (json.JSONDecodeError, OSError):
+                return None
         return None
 
     def _write_conv(self, conv_id: str, data: dict):

@@ -40,7 +40,10 @@ def _last_user_text(messages: list) -> str:
 
 
 async def process_chat(req: ChatCompletionRequest, request: Request, bridge):
-    """Lógica completa de procesamiento de chat. Bridge ya autenticado."""
+    """Lógica completa de procesamiento de chat."""
+    if bridge is None or not bridge.is_authenticated:
+        code, body = error_response("AUTH_REQUIRED", detail="Bridge no autenticado en ChatGPT")
+        return JSONResponse(content=body, status_code=code)
     msgs = [m.model_dump() for m in req.messages]
     prompt = _last_user_text(msgs)
     if not prompt and not ImageHandler.extract_base64_from_messages(msgs):
