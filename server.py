@@ -85,6 +85,13 @@ async def lifespan(app: FastAPI):
         WATCHDOG = Watchdog(page, on_recovery=_recover)
         await WATCHDOG.start()
 
+    # 🛡️ Session Recovery: restaurar cookies guardadas
+    if SESSION_RECOVERY:
+        restored = await SESSION_RECOVERY.restore()
+        if restored:
+            valid = await SESSION_RECOVERY.ensure_valid(page, timeout=5)
+            print(f"[Session] {'✅' if valid else '⚠️'} Sesión {'válida' if valid else 'expirada — login manual requerido'}")
+
     if not BRIDGE.is_authenticated:
         await _wait_for_login()
     SHUTDOWN.register_signals()
