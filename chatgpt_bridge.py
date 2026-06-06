@@ -118,17 +118,3 @@ class ChatGPTBridge:
     @property
     def is_authenticated(self) -> bool:
         return self._auth.is_authenticated if self._auth else False
-
-
-# ── Singleton ────────────────────────────────────────────
-
-_bridge_instance: Optional[ChatGPTBridge] = None
-_lock = asyncio.Lock()
-
-
-async def get_bridge(headless: bool = True) -> ChatGPTBridge:
-    global _bridge_instance
-    async with _lock:
-        if _bridge_instance is None:
-            _bridge_instance = await ChatGPTBridge(headless=headless).start()
-        return _bridge_instance

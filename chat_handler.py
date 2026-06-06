@@ -72,6 +72,9 @@ async def process_chat(req: ChatCompletionRequest, request: Request, bridge):
         )
         return JSONResponse(content=body, status_code=code)
 
+    # 🛡️ AntiBan: "leer" la respuesta (simula humano)
+    await _antiban.reading_pause()
+
     content: str | list[dict] = text
     if gen_imgs:
         parts: list[dict] = [{"type": "text", "text": text}]
