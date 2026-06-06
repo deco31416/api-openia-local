@@ -41,12 +41,16 @@ class ImageHandler:
             file_input = await self._page.query_selector('input[type="file"]')
             if file_input:
                 await file_input.set_input_files(tmp_path)
-                await asyncio.sleep(1.5)  # esperar upload
-                print(f"[ImgIn] ✅ Imagen subida: {tmp_path}")
-                return True
+                await asyncio.sleep(1.5)
+                print(f"[ImgIn] ✅ Imagen subida")
 
-            print("[ImgIn] ⚠️ No se encontró input[type=file]")
-            return False
+            # Limpiar archivo temporal
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+            return True
 
         except Exception as e:
             print(f"[ImgIn] ❌ Error subiendo imagen: {e}")

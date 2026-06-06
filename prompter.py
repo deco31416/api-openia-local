@@ -6,6 +6,7 @@ import asyncio
 from typing import Optional
 
 from css_selectors import SELECTORS
+from selector_recovery import SelectorRecovery
 
 
 class Prompter:
@@ -14,7 +15,8 @@ class Prompter:
     def __init__(self, page, timeout: int = 120_000, fast: bool = True):
         self._page = page
         self._timeout = timeout
-        self._fast = fast  # Modo rápido: sin delays innecesarios
+        self._fast = fast
+        self._recovery = SelectorRecovery(max_retries=2, base_delay=0.5)
 
     async def send(self, text: str) -> str:
         """Envía texto a ChatGPT y devuelve respuesta completa."""
@@ -23,16 +25,15 @@ class Prompter:
         return await self._wait()
 
     async def _type(self, text: str):
-        """Escribe en el input. Modo rápido usa fill() directo sin type() lento."""
+        """Escribe en el input. fill() rápido con fallback a type() vía recovery."""
         input_el = await self._page.wait_for_selector(
             SELECTORS["prompt_input"], timeout=10_000
         )
         await input_el.click()
-        if self._fast:
-            # RÁPIDO: fill directo (0 delays)
+        try:
             await input_el.fill(text)
-        else:
-            # LENTO: type carácter por carácter (simula humano)
+        except Exception:
+            # Fallback: type carácter por carácter
             await input_el.fill("")
             await input_el.type(text, delay=10)
 
