@@ -24,6 +24,13 @@ export default function DashboardPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
+  const version = health?.version || "cargando...";
+  const uptime = health?.uptime_seconds || 0;
+  const status: "healthy" | "degraded" | "unhealthy" =
+    health?.status === "healthy" || health?.status === "degraded" || health?.status === "unhealthy"
+      ? health.status
+      : "unhealthy";
+
   // Sidebar toggle: desktop = collapse, mobile = overlay
   const handleSidebarToggle = () => {
     if (isMobile) {
@@ -68,9 +75,9 @@ export default function DashboardPage() {
       {/* Columna derecha: navbar + main + footer */}
       <div className="flex flex-col flex-1 min-w-0">
         <Navbar
-          status={health?.status || "unhealthy"}
-          version={health?.version || "?.?.?"}
-          uptime={health?.uptime_seconds || 0}
+          status={status}
+          version={version}
+          uptime={uptime}
         />
 
         <main className="flex-1 w-full mx-auto p-4 md:p-6">
@@ -103,7 +110,7 @@ export default function DashboardPage() {
               <span>🧠</span>
               <span>ChatGPT Web Bridge</span>
               <span className="text-[#30363d]">|</span>
-              <span>v{health?.version || "?.?.?"}</span>
+              <span>{version}</span>
             </div>
             <div className="flex items-center gap-3">
               <span>Auto-refresh 10-20s</span>
