@@ -88,7 +88,7 @@ def diagnose(bridge) -> HealthResponse:
     return HealthResponse(
         status=overall,
         authenticated=bridge.is_authenticated if bridge else False,
-        version="3.3.0",
+        version="3.4.0",
         components=components,
         errors=errors,
         uptime_seconds=round(uptime, 1),

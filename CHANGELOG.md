@@ -327,6 +327,27 @@ Dates use **ISO 8601** format: `YYYY-MM-DD`.
 
 ---
 
+## [3.4.0] — 2026-06-06
+
+### Fixed (Auditoría — 9 bugs y deudas técnicas)
+
+- `_last_user_text` duplicada eliminada de `server.py`.
+- `server.py` 329 → 202 líneas (`agent_handler.py` extraído).
+- `ChatCompletionChunk` campos duplicados eliminados.
+- `antiban.reading_pause()` ahora activo en `chat_handler.py`.
+- `get_bridge()` dead code eliminado.
+- `image_handler.py`: tempfile limpia con `os.unlink()`.
+- `selector_recovery.py` integrado en `Prompter` como fallback.
+- `recall()` expuesto: `GET /v1/agent/memory/{id}`.
+- `session_recovery.restore()` activado en arranque.
+
+### Added
+
+- `agent_handler.py`: router del agente (136 líneas).
+- `SelectorRecovery` integrado con fallback `fill()` → `type()`.
+
+---
+
 ## [3.3.0] — 2026-06-04
 
 ### Added

@@ -124,7 +124,7 @@ async def _wait_for_login():
     # auth.ensure se llama dentro de bridge.send()
 
 
-app = FastAPI(title="ChatGPT Web Bridge", version="3.3.0", lifespan=lifespan)
+app = FastAPI(title="ChatGPT Web Bridge", version="3.4.0", lifespan=lifespan)
 app.include_router(v1_router)
 app.include_router(agent_router, prefix="/v1")
 
