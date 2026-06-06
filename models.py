@@ -119,9 +119,6 @@ class ChatCompletionChunk(BaseModel):
     choices: List[ChatChoice]
     usage: Optional[UsageInfo] = None
     system_fingerprint: Optional[str] = None
-    model: str
-    choices: List[ChatChoice]
-    usage: UsageInfo
 
 
 class ModelInfo(BaseModel):
