@@ -70,38 +70,39 @@ class KnowledgeWriter:
     ) -> Optional[dict]:
         """
         Detecta si hay un patrón recurrente que merezca guardarse.
-        Busca frases como "no, la URL es", "corrige eso", "recuerda que...".
-        
-        Retorna None o {"type": "correction", "topic": "api_url", "value": "https://..."}
+        Busca URLs/valores que aparecen múltiples veces en correcciones del usuario.
         """
-        correction_patterns = [
-            r"(?:no|corrige|recuerda|atento|atención)\s*,?\s*(?:la|el|que)\s+(.+?)\s+(?:es|son|correcto|correcta)\s+(.+?)(?:\.|$)",
-            r"(?:actually|wait|no)\s*,?\s*(?:the|that)\s+(.+?)\s+(?:is|should be|should've been)\s+(.+?)(?:\.|$)",
-            r"anota\s*(?:esto|que)?\s*:?\s*(.+?)\s*[-=]\s*(.+?)(?:\.|$)",
-        ]
         topics: dict[str, list[str]] = {}
 
-        for msg in recent_messages[-20:]:  # últimos 20 mensajes
+        for msg in recent_messages[-20:]:
             text = msg.get("content", "")
-            if not isinstance(text, str):
+            if not isinstance(text, str) or msg.get("role") != "user":
                 continue
-            for pattern in correction_patterns:
-                matches = re.findall(pattern, text, re.IGNORECASE)
-                for match in matches:
-                    topic = match[0].strip().lower()[:50] if match else ""
-                    value = match[1].strip()[:200] if len(match) > 1 else ""
-                    if topic and value:
-                        key = f"correction:{topic}"
-                        topics.setdefault(key, []).append(value)
 
-        # Si un tema aparece min_occurrences veces, sugerir guardarlo
+            # Detectar URLs mencionadas en contexto correctivo
+            import re
+            urls = re.findall(r'https?://[^\s,.]+', text)
+            # Detectar frases como "la URL es X", "X es correcto"
+            phrases = re.findall(
+                r'(?:la|el)\s+\w+(?:\s+(?:correct[oa]|URL|API|endpoint))?\s+(?:es|son)\s+(\S+)',
+                text, re.IGNORECASE
+            )
+
+            for url in urls:
+                key = f"correction:url"
+                topics.setdefault(key, []).append(url)
+
+            for phrase in phrases:
+                key = f"correction:value"
+                topics.setdefault(key, []).append(phrase)
+
         for key, values in topics.items():
             if len(values) >= min_occurrences:
                 _, topic = key.split(":", 1)
                 return {
                     "type": "correction",
                     "topic": topic,
-                    "value": values[-1],  # el valor más reciente
+                    "value": values[-1],
                     "count": len(values),
                 }
 

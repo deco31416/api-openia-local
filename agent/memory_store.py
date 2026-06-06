@@ -121,7 +121,7 @@ class MemoryStore:
         if filepath.exists():
             try:
                 return json.loads(filepath.read_text("utf-8"))
-            except (json.JSONDecodeError, OSError):
+            except (json.JSONDecodeError, UnicodeDecodeError, OSError):
                 return None
         return None
 
