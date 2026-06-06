@@ -19,7 +19,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:9090";
 export default function DashboardPage() {
   const [health, setHealth] = useState<HealthResponse | null>(null);
   const [model, setModel] = useState("o3-5.5-thinking");
-  const [activeSection, setActiveSection] = useState("health");
+  const [activeSection, setActiveSection] = useState("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -53,26 +53,38 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={cn(theme.colors.bg, theme.colors.text, "min-h-screen flex flex-col")}>
-      <Navbar
-        status={health?.status || "unhealthy"}
-        version={health?.version || "?.?.?"}
-        uptime={health?.uptime_seconds || 0}
+    <div className={cn(theme.colors.bg, theme.colors.text, "min-h-screen flex")}>
+      {/* Sidebar: ocupa 100% del viewport, a la izquierda */}
+      <Sidebar
+        active={activeSection}
+        onSelect={setActiveSection}
+        collapsed={sidebarCollapsed}
+        onToggle={handleSidebarToggle}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
+        isMobile={isMobile}
       />
 
-      <div className="flex flex-1">
-        <Sidebar
-          active={activeSection}
-          onSelect={setActiveSection}
-          collapsed={sidebarCollapsed}
-          onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
-          mobileOpen={mobileOpen}
-          onMobileClose={() => setMobileOpen(false)}
-          isMobile={isMobile}
+      {/* Columna derecha: navbar + main + footer */}
+      <div className="flex flex-col flex-1 min-w-0">
+        <Navbar
+          status={health?.status || "unhealthy"}
+          version={health?.version || "?.?.?"}
+          uptime={health?.uptime_seconds || 0}
         />
 
-        <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6">
+        <main className="flex-1 w-full mx-auto p-4 md:p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {/* OVERVIEW: resumen de todo */}
+            <div id="section-overview" className={cn("contents", activeSection !== "overview" && "hidden")}>
+              <HealthCard />
+              <UsageCard />
+              <QueuePanel />
+              <ModelSelector current={model} onChange={setModel} />
+              <ConversationsList />
+              <ErrorLog />
+            </div>
+            {/* Secciones individuales */}
             <div id="section-health" className={activeSection === "health" ? "" : "hidden"}><HealthCard /></div>
             <div id="section-usage" className={activeSection === "usage" ? "" : "hidden"}><UsageCard /></div>
             <div id="section-queue" className={activeSection === "queue" ? "" : "hidden"}><QueuePanel /></div>
@@ -84,23 +96,23 @@ export default function DashboardPage() {
             <div id="section-errors" className={activeSection === "errors" ? "" : "hidden"}><ErrorLog /></div>
           </div>
         </main>
-      </div>
 
-      <footer className={cn(theme.colors.card, theme.colors.border, "border-t px-5 py-4 mt-auto")}>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#8b949e]">
-          <div className="flex items-center gap-2">
-            <span>🧠</span>
-            <span>ChatGPT Web Bridge</span>
-            <span className="text-[#30363d]">|</span>
-            <span>v{health?.version || "?.?.?"}</span>
+        <footer className={cn(theme.colors.card, theme.colors.border, "border-t px-5 py-4")}>
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#8b949e]">
+            <div className="flex items-center gap-2">
+              <span>🧠</span>
+              <span>ChatGPT Web Bridge</span>
+              <span className="text-[#30363d]">|</span>
+              <span>v{health?.version || "?.?.?"}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span>Auto-refresh 10-20s</span>
+              <span className="text-[#30363d]">|</span>
+              <span>© 2026 deco31416.com</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span>Auto-refresh 10-20s</span>
-            <span className="text-[#30363d]">|</span>
-            <span>© 2026 deco31416.com</span>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      </div>
     </div>
   );
 }

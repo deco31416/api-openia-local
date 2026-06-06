@@ -2,13 +2,14 @@
 
 import { useEffect } from "react";
 import {
-  Heart, BarChart3, MessagesSquare,
+  LayoutDashboard, Heart, BarChart3, MessagesSquare,
   ListOrdered, Cpu, Send, AlertTriangle,
   ChevronLeft, ChevronRight, Brain, Menu, X,
 } from "lucide-react";
 import { theme, cn } from "@/lib/theme";
 
 const SECTIONS = [
+  { id: "overview", label: "Resumen", icon: LayoutDashboard },
   { id: "health", label: "Health", icon: Heart },
   { id: "usage", label: "Uso Global", icon: BarChart3 },
   { id: "queue", label: "Cola", icon: ListOrdered },
@@ -82,13 +83,13 @@ export function Sidebar({ active, onSelect, collapsed, onToggle, mobileOpen, onM
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar: ocupa 100% alto de la ventana */}
       <aside
         className={cn(
           theme.colors.card,
-          "flex flex-col h-full transition-all duration-300 ease-in-out",
-          // Desktop
-          !isMobile && "border-r border-[#30363d]",
+          "flex flex-col transition-all duration-300 ease-in-out shrink-0",
+          // Desktop: altura total de la ventana
+          !isMobile && "h-screen sticky top-0 border-r border-[#30363d]",
           !isMobile && (collapsed ? "w-[68px]" : "w-[244px]"),
           // Mobile overlay
           isMobile && "fixed inset-y-0 left-0 z-50 w-72 border-r border-[#30363d] shadow-2xl",
