@@ -60,7 +60,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className={cn(theme.colors.bg, theme.colors.text, "min-h-screen flex")}>
+    <div className={cn(theme.colors.bg, theme.colors.text, "flex-1 flex")}>
       {/* Sidebar: ocupa 100% del viewport, a la izquierda */}
       <Sidebar
         active={activeSection}
